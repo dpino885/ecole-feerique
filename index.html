@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Forêt Enchantée</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <canvas id="canvasParticules"></canvas>
+
+    <div class="interface" id="menuPrincipal">
+        <h1>Forêt Enchantée</h1>
+        
+        <div class="menu-boutons">
+            <button onclick="ouvrirModule('chiffres')">🔢 CHIFFRES</button>
+            <button onclick="ouvrirModule('alphabet')">ABC ALPHABET</button>
+            <button onclick="ouvrirModule('formes')">🟦 FORMES</button>
+        </div>
+
+        <div class="controles-ecran">
+            <button id="btnPleinEcran">Mode Plein Écran</button>
+            <button id="btnQuitter">Quitter (Appuyer 3s)</button>
+        </div>
+    </div>
+
+    <div id="moduleChiffres" class="module-ecran" style="display: none;">
+        <button class="btn-retour" onclick="retourMenu()">⬅ Retour</button>
+        <h2 id="titreChiffre">Choisis un chiffre magique !</h2>
+        <div class="grille-chiffres">
+            <button onclick="clicChiffre(1)">1</button>
+            <button onclick="clicChiffre(2)">2</button>
+            <button onclick="clicChiffre(3)">3</button>
+            <button onclick="clicChiffre(4)">4</button>
+            <button onclick="clicChiffre(5)">5</button>
+            <button onclick="clicChiffre(6)">6</button>
+            <button onclick="clicChiffre(7)">7</button>
+            <button onclick="clicChiffre(8)">8</button>
+            <button onclick="clicChiffre(9)">9</button>
+            <button onclick="clicChiffre(10)">10</button>
+        </div>
+    </div>
+
+<div id="moduleAlphabet" class="module-ecran" style="display: none;">
+    <button class="btn-retour" onclick="retourMenu()">⬅ Retour</button>
+    <h2>L'Alphabet des Fées</h2>
+    <div class="grille-alphabet" id="grilleABC">
+        </div>
+</div>
+
+<div id="moduleFormes" class="module-ecran" style="display: none;">
+    <button class="btn-retour" onclick="retourMenu()">⬅ Retour</button>
+    <h2>Formes Mystérieuses</h2>
+    <div class="grille-formes">
+        <button class="forme-btn carre" onclick="clicForme('Carré')"><span>■</span></button>
+        <button class="forme-btn cercle" onclick="clicForme('Cercle')"><span>●</span></button>
+        <button class="forme-btn triangle" onclick="clicForme('Triangle')"><span>▲</span></button>
+        <button class="forme-btn etoile-bouton" onclick="clicForme('Étoile')"><span>★</span></button>
+        <button class="forme-btn coeur" onclick="clicForme('Cœur')"><span>❤</span></button>
+    </div>
+</div>
+
+    <script src="script.js"></script> 
+
+</body>
+</html>

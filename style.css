@@ -1,0 +1,207 @@
+/* --- Style Général et Nouveau Décor --- */
+body {
+    margin: 0;
+    overflow: hidden; /* Empêche le défilement */
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    color: white; /* Texte en blanc pour contraster avec le fond sombre */
+
+    /* NOUVEAU FOND : CHÂTEAU ET FORÊT (Généré en CSS) */
+    /* Un dégradé complexe qui simule un ciel nocturne mauve, des silhouettes de forêt et un château lointain */
+    background: 
+        /* Silhouette du Château (très simplifié) */
+        linear-gradient(to bottom, transparent 60%, #2e004b 60%, #2e004b 70%, transparent 70%),
+        radial-gradient(circle at 50% 55%, #4a148c 5%, transparent 6%),
+        /* Silhouette de la Forêt (arbres) */
+        linear-gradient(135deg, #1a0033 25%, transparent 25%) -50px 0,
+        linear-gradient(225deg, #1a0033 25%, transparent 25%) -50px 0,
+        linear-gradient(315deg, #1a0033 25%, transparent 25%),
+        linear-gradient(45deg, #1a0033 25%, transparent 25%),
+        /* Ciel Étoilé Mauve */
+        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
+        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
+        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px),
+        linear-gradient(to bottom, #4a148c 0%, #1a0033 100%); /* Dégradé mauve foncé */
+    background-size: 100% 100%, 100% 100%, 100px 100px, 100px 100px, 100px 100px, 100px 100px, 250px 250px, 100px 100px, 150px 150px, 100% 100%;
+    background-color: #1a0033; /* Couleur de secours */
+}
+
+/* --- Le Canvas (Arrière-plan interactif) --- */
+#canvasParticules {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1; /* Derrière l'interface */
+}
+
+/* --- L'Interface (Boutons et Titre) --- */
+.interface {
+    position: relative;
+    z-index: 10; /* Devant le canvas */
+    text-align: center;
+    background: rgba(26, 0, 51, 0.6); /* Fond semi-transparent pour lisibilité */
+    padding: 30px;
+    border-radius: 30px;
+    box-shadow: 0 0 20px rgba(123, 31, 162, 0.5); /* Lueur mauve */
+}
+
+h1 {
+    color: #e1bee7; /* Mauve très clair pour le titre */
+    font-size: 2.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    margin-bottom: 30px;
+}
+
+/* --- Gros Boutons (Thème Mauve) --- */
+.menu-boutons button {
+    display: block;
+    width: 280px;
+    margin: 25px auto;
+    padding: 25px;
+    font-size: 1.6rem;
+    border: 2px solid #7b1f62; /* Bordure mauve */
+    border-radius: 50px;
+    /* Dégradé de boutons mauves */
+    background: linear-gradient(to bottom, #9c27b0, #7b1fa2);
+    color: white;
+    font-weight: bold;
+    text-transform: uppercase;
+    box-shadow: 0 8px 0 #4a148c; /* Ombre portée mauve foncée (effet 3D) */
+    cursor: pointer;
+    transition: all 0.1s ease;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+}
+
+/* Effet quand on clique sur le bouton */
+.menu-boutons button:active {
+    box-shadow: 0 2px 0 #4a148c; /* L'ombre diminue */
+    transform: translateY(6px); /* Le bouton s'enfonce */
+}
+
+/* --- Boutons Système (Plein écran/Quitter) --- */
+.controles-ecran {
+    margin-top: 40px;
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.controles-ecran button {
+    background: #4a148c; /* Violet très sombre */
+    color: #e1bee7;
+    border: 1px solid #7b1fa2;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+#btnQuitter {
+    background: #311b92; /* Un peu différent pour "Quitter" */
+}
+
+/* --- Style des Modules --- */
+.module-ecran {
+    position: relative;
+    z-index: 20;
+    text-align: center;
+    width: 90%;
+    max-width: 600px;
+}
+
+.grille-chiffres {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 colonnes sur PC */
+    gap: 15px;
+    margin-top: 20px;
+}
+
+/* Sur mobile, on passe à 2 colonnes pour que ce soit gros */
+@media (max-width: 600px) {
+    .grille-chiffres { grid-template-columns: repeat(2, 1fr); }
+}
+
+.grille-chiffres button {
+    aspect-ratio: 1 / 1;
+    font-size: 3rem;
+    border-radius: 20px;
+    border: 3px solid #e1bee7;
+    background: #7b1fa2;
+    color: white;
+    box-shadow: 0 5px 0 #4a148c;
+    cursor: pointer;
+}
+
+.btn-retour {
+    position: absolute;
+    top: -50px;
+    left: 0;
+    padding: 10px 20px;
+    background: #ad1457;
+    color: white;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+.grille-alphabet {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); /* S'adapte à l'écran */
+    gap: 10px;
+    margin-top: 20px;
+    max-height: 70vh; /* Évite que ça dépasse sur petit écran */
+    overflow-y: auto; /* Permet de défiler si besoin */
+    padding: 10px;
+}
+
+.lettre-bouton {
+    aspect-ratio: 1 / 1;
+    font-size: 2rem;
+    border-radius: 15px;
+    border: none;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 4px 0 rgba(0,0,0,0.3);
+    transition: transform 0.1s;
+}
+
+.lettre-bouton:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+/* --- Style du Module Formes --- */
+.grille-formes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    margin-top: 30px;
+}
+
+.forme-btn {
+    width: 120px;
+    height: 120px;
+    border: none;
+    cursor: pointer;
+    font-size: 4rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    color: white;
+    transition: transform 0.2s;
+    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
+}
+
+.forme-btn:active { transform: scale(0.9); }
+
+/* Couleurs et arrondis spécifiques */
+.carre { background: #42a5f5; border-radius: 10px; }
+.cercle { background: #ff7043; border-radius: 50%; }
+.triangle { background: #66bb6a; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+.etoile-bouton { background: #fbc02d; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
+.coeur { background: #ec407a; clip-path: polygon(50% 15%, 80% 0%, 100% 20%, 50% 100%, 0% 20%, 20% 0%); }
