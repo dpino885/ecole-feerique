@@ -185,6 +185,10 @@ let enTrainDeDessiner = false;
 let couleurActuelle = 'yellow';
 
 function initialiserDessin() {
+    // --- NOUVEAU : On s'assure que le canvas des étoiles est prêt ---
+    canvas.width = window.innerWidth;  // On redimensionne le canvas des étoiles
+    canvas.height = window.innerHeight;
+    document.getElementById('canvasParticules').style.display = 'block'; // On force l'affichage
     canvasDessin.width = window.innerWidth;
     canvasDessin.height = window.innerHeight;
     ctxDessin.lineJoin = 'round';
