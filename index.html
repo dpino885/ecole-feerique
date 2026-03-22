@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Forêt Enchantée</title>
     <link rel="stylesheet" href="style.css">
 </head>
@@ -61,16 +61,21 @@
     </div>
 </div>
 
-<div id="moduleDessin" class="module-ecran" style="display: none;">
-    <div class="barre-outils">
-        <button class="btn-retour-dessin" onclick="retourMenu()">⬅</button>
-        <button onclick="changerCouleur('yellow')" style="background: yellow;"></button>
-        <button onclick="changerCouleur('cyan')" style="background: cyan;"></button>
-        <button onclick="changerCouleur('magenta')" style="background: magenta;"></button>
-        <button onclick="changerCouleur('white')" style="background: white;"></button>
-        <button onclick="effacerDessin()" style="background: #333; color: white;">🗑️</button>
-    </div>
+<div id="moduleDessin" class="module-ecran" style="display:none;">
     <canvas id="canvasDessin"></canvas>
+    
+    <div class="barre-outils">
+        <button class="btn-retour-dessin" onclick="retourMenu()">🏠</button>
+        <button style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
+        <button style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
+        <button style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
+        <button style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
+        <button style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
+        <button style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
+        <button style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
+        
+        <button onclick="effacerDessin()">🗑️</button>
+    </div>
 </div>
 
     <script src="script.js"></script> 

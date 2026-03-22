@@ -60,8 +60,22 @@ gererParticules();
 function creerTrainee(e) {
     let x = e.touches ? e.touches[0].clientX : e.clientX;
     let y = e.touches ? e.touches[0].clientY : e.clientY;
+    
+    // On crée 5 étoiles à chaque mouvement
     for (let i = 0; i < 5; i++) {
-        particules.push(new Particule(x, y));
+        let p = new Particule(x, y);
+        
+        // --- LA CORRECTION EST ICI ---
+        // Si le module de dessin est ouvert, on utilise la couleurActuelle du pinceau.
+        // Sinon, on utilise la couleur mauve par défaut du menu.
+        const moduleDessin = document.getElementById('moduleDessin');
+        if (moduleDessin && moduleDessin.style.display === 'block') {
+            p.couleur = couleurActuelle; 
+        }
+        // Si ce n'est pas le dessin, p.couleur garde la couleur mauve 
+        // définie dans le constructor de la classe Particule.
+        
+        particules.push(p);
     }
 }
 window.addEventListener('mousemove', creerTrainee);
@@ -219,7 +233,21 @@ function initialiserDessin() {
     ctxDessin.lineWidth = 8;
 }
 
-function changerCouleur(c) { couleurActuelle = c; }
+
+function changerCouleur(c) { 
+    couleurActuelle = c; 
+    
+    // L'IA nomme la couleur avec une description féerique
+    if (c === '#ff0000') parler("Rouge... comme une pomme d'amour !");
+    if (c === '#00ff00') parler("Vert... comme l'herbe de la forêt !");
+    if (c === '#0000ff') parler("Bleu... comme le ciel des fées !");
+    if (c === '#ffff00') parler("Jaune... comme le chaud soleil !");
+    if (c === '#ff00ff') parler("Mauve... comme une fleur magique !");
+    if (c === '#ff9800') parler("Orange... comme une petite citrouille !");
+    if (c === '#ffffff') parler("Blanc... comme la neige de l'hiver !");
+}
+
+
 function effacerDessin() { ctxDessin.clearRect(0, 0, canvasDessin.width, canvasDessin.height); }
 
 // Fonctions de dessin

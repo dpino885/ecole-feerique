@@ -262,32 +262,41 @@ h1 {
 }
 
 
-
 .barre-outils {
-    position: fixed; /* On change absolute pour fixed */
+    position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
-    gap: 15px;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 15px;
-    border-radius: 50px;
-    z-index: 100; /* Étage 100 (Tout en haut, rien ne le bloque) */
+    flex-wrap: wrap; /* Permet de passer à la ligne sur petit écran */
+    justify-content: center;
+    gap: 10px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 30px;
+    z-index: 100;
+    backdrop-filter: blur(5px);
 }
 
 .barre-outils button {
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border-radius: 50%;
-    border: 3px solid white;
+    border: 2px solid white;
     cursor: pointer;
-    position: relative;
-    z-index: 101; /* Encore un peu plus haut pour être sûr */
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    transition: transform 0.2s;
 }
 
-.btn-retour-dessin {
-    background: #ad1457 !important;
-    font-size: 1rem;
-    color: white;
+.barre-outils button:active {
+    transform: scale(0.8);
+}
+
+/* Boutons spéciaux (Retour et Poubelle) */
+.btn-retour-dessin, .barre-outils button:last-child {
+    background: #4a148c !important;
+    font-size: 1.2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
