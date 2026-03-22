@@ -209,11 +209,14 @@ function arreterDessin() {
 function dessiner(e) {
     if (!enTrainDeDessiner) return;
     
+    // On récupère les coordonnées (souris ou doigt)
     let x = e.touches ? e.touches[0].clientX : e.clientX;
     let y = e.touches ? e.touches[0].clientY : e.clientY;
 
+    // --- LE TRAIT PERMANENT ---
     ctxDessin.strokeStyle = couleurActuelle;
-    ctxDessin.shadowBlur = 10; // Effet néon/magique
+    ctxDessin.lineWidth = 10; // Un trait un peu plus épais pour les petits doigts
+    ctxDessin.shadowBlur = 15; // Lueur autour du trait
     ctxDessin.shadowColor = couleurActuelle;
 
     ctxDessin.lineTo(x, y);
@@ -221,9 +224,16 @@ function dessiner(e) {
     ctxDessin.beginPath();
     ctxDessin.moveTo(x, y);
     
-    // On ajoute aussi quelques étoiles du premier canvas pour le fun !
-    for(let i=0; i<2; i++) particules.push(new Particule(x, y));
+    // --- LA POUSSIÈRE D'ÉTOILES (Effet éphémère) ---
+    // On crée 3 étoiles à chaque petit mouvement pour un effet dense
+    for(let i = 0; i < 3; i++) {
+        let p = new Particule(x, y);
+        p.couleur = couleurActuelle; // L'étoile prend la couleur du pinceau choisi
+        p.taille = Math.random() * 4 + 1; // Des étoiles de tailles variées
+        particules.push(p);
+    }
 }
+
 
 // Événements
 canvasDessin.addEventListener('mousedown', demarrerDessin);
