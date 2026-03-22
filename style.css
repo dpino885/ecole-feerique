@@ -1,32 +1,39 @@
 /* --- Style Général et Nouveau Décor --- */
 body {
     margin: 0;
-    overflow: hidden; /* Empêche le défilement */
+    padding: 0;
+    overflow: hidden;
+    height: 100vh;
+    width: 100vw;
     font-family: 'Comic Sans MS', cursive, sans-serif;
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100vh;
-    color: white; /* Texte en blanc pour contraster avec le fond sombre */
+    color: white;
 
-    /* NOUVEAU FOND : CHÂTEAU ET FORÊT (Généré en CSS) */
-    /* Un dégradé complexe qui simule un ciel nocturne mauve, des silhouettes de forêt et un château lointain */
     background: 
-        /* Silhouette du Château (très simplifié) */
-        linear-gradient(to bottom, transparent 60%, #2e004b 60%, #2e004b 70%, transparent 70%),
-        radial-gradient(circle at 50% 55%, #4a148c 5%, transparent 6%),
-        /* Silhouette de la Forêt (arbres) */
-        linear-gradient(135deg, #1a0033 25%, transparent 25%) -50px 0,
-        linear-gradient(225deg, #1a0033 25%, transparent 25%) -50px 0,
-        linear-gradient(315deg, #1a0033 25%, transparent 25%),
-        linear-gradient(45deg, #1a0033 25%, transparent 25%),
-        /* Ciel Étoilé Mauve */
-        radial-gradient(white, rgba(255,255,255,.2) 2px, transparent 3px),
-        radial-gradient(white, rgba(255,255,255,.15) 1px, transparent 2px),
-        radial-gradient(white, rgba(255,255,255,.1) 2px, transparent 3px),
-        linear-gradient(to bottom, #4a148c 0%, #1a0033 100%); /* Dégradé mauve foncé */
-    background-size: 100% 100%, 100% 100%, 100px 100px, 100px 100px, 100px 100px, 100px 100px, 250px 250px, 100px 100px, 150px 150px, 100% 100%;
+
+        url('fond-realiste.png'); /* <--- CHANGE LE NOM ICI pour qu'il soit identique à ton fichier */
+
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
     background-color: #1a0033; /* Couleur de secours */
+}
+
+/* On s'assure que les modules ne cachent pas l'image */
+#moduleDessin, .module-ecran {
+    background: transparent !important;
+}
+
+#canvasDessin {
+    z-index: 10;
+    background: transparent;
+}
+
+#canvasParticules {
+    z-index: 20;
+    pointer-events: none;
 }
 
 /* Le canvas des étoiles doit être tout en haut */
@@ -53,72 +60,93 @@ body {
     touch-action: none;
 }
 
-/* --- L'Interface (Boutons et Titre) --- */
+/* --- L'Interface (Menu Principal) --- */
 .interface {
-    position: relative;
-    z-index: 10; /* Devant le canvas */
+    position: fixed; /* Prend tout l'écran */
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 30;
     text-align: center;
-    background: rgba(26, 0, 51, 0.6); /* Fond semi-transparent pour lisibilité */
-    padding: 30px;
-    border-radius: 30px;
-    box-shadow: 0 0 20px rgba(123, 31, 162, 0.5); /* Lueur mauve */
+    background: transparent; /* ON ENLÈVE LE BACKGROUND DU MENU */
+    box-shadow: none;        /* On enlève l'ombre */
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between; /* Espace entre le titre et le reste */
+    padding: 40px 0;
+    pointer-events: none; /* Permet de cliquer à travers si besoin */
+}
+
+/* On s'assure que les boutons redeviennent cliquables */
+.interface > * {
+    pointer-events: auto;
 }
 
 h1 {
-    color: #e1bee7; /* Mauve très clair pour le titre */
-    font-size: 2.5rem;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    margin-bottom: 30px;
+    color: #e1bee7;
+    font-size: 3rem;
+    text-shadow: 0 0 15px rgba(156, 39, 176, 0.8);
+    margin: 0;
+    padding-top: 20px;
 }
 
-/* --- Gros Boutons (Thème Mauve) --- */
+/* --- Dispersion des Boutons --- */
+.menu-boutons {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* Deux colonnes */
+    gap: 40px;                     /* Grand espace entre les boutons */
+    justify-items: center;
+    align-content: center;
+    flex-grow: 1;                  /* Prend l'espace central */
+    padding: 20px;
+}
+
 .menu-boutons button {
     display: block;
-    width: 280px;
-    margin: 25px auto;
+    width: 220px;          /* Un peu plus petit pour mieux disperser */
+    margin: 10px;
     padding: 25px;
-    font-size: 1.6rem;
-    border: 2px solid #7b1f62; /* Bordure mauve */
+    font-size: 1.4rem;
+    border: 2px solid #e1bee7;
     border-radius: 50px;
-    /* Dégradé de boutons mauves */
-    background: linear-gradient(to bottom, #9c27b0, #7b1fa2);
-    color: white;
-    font-weight: bold;
-    text-transform: uppercase;
-    box-shadow: 0 8px 0 #4a148c; /* Ombre portée mauve foncée (effet 3D) */
-    cursor: pointer;
-    transition: all 0.1s ease;
-    text-shadow: 1px 1px 2px rgba(0,0,0,0.3);
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+    /* On peut ajouter une petite rotation aléatoire pour le style "éparpillé" */
 }
 
-/* Effet quand on clique sur le bouton */
-.menu-boutons button:active {
-    box-shadow: 0 2px 0 #4a148c; /* L'ombre diminue */
-    transform: translateY(6px); /* Le bouton s'enfonce */
+/* Un bouton sur deux un peu décalé pour le look "dispersé" */
+.menu-boutons button:nth-child(even) {
+    transform: translateY(20px);
 }
 
-/* --- Boutons Système (Plein écran/Quitter) --- */
+/* --- Bouton Plein Écran Unique et Centré --- */
 .controles-ecran {
-    margin-top: 40px;
+    position: fixed;
+    bottom: 20px;
+    left: 0;
+    right: 0;
     display: flex;
     justify-content: center;
-    gap: 15px;
+    z-index: 1000;
 }
 
 .controles-ecran button {
-    background: #4a148c; /* Violet très sombre */
+    background: rgba(49, 27, 146, 0.4);
     color: #e1bee7;
-    border: 1px solid #7b1fa2;
-    padding: 10px 20px;
+    border: 1px solid rgba(123, 31, 162, 0.5);
+    padding: 8px 20px;
     border-radius: 20px;
-    font-size: 0.9rem;
+    font-size: 0.8rem;
     cursor: pointer;
+    backdrop-filter: blur(3px);
+    transition: all 0.3s ease;
 }
 
+/* On force la disparition du bouton Quitter */
 #btnQuitter {
-    background: #311b92; /* Un peu différent pour "Quitter" */
+    display: none !important;
 }
-
 /* --- Style des Modules --- */
 .module-ecran {
     position: relative;
@@ -223,17 +251,14 @@ h1 {
 .coeur { background: #ec407a; clip-path: polygon(50% 15%, 80% 0%, 100% 20%, 50% 100%, 0% 20%, 20% 0%); }
 
 /* --- Style du Module Dessin --- */
-/* --- Style du Module Dessin --- */
 #moduleDessin {
     width: 100vw;
     height: 100vh;
-    max-width: none;
     position: fixed;
     top: 0;
     left: 0;
-    /* ON ENLÈVE LE BACKGROUND ICI */
-    background: rgb(62, 4, 62); 
-    z-index: 5; /* On le met très bas */
+    background: transparent !important; /* Pour voir l'image du body en dessous */
+    z-index: 5;
 }
 
 

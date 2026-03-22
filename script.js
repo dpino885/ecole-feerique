@@ -67,30 +67,43 @@ function creerTrainee(e) {
 window.addEventListener('mousemove', creerTrainee);
 window.addEventListener('touchmove', creerTrainee);
 
-// --- 3. PLEIN ÉCRAN & QUITTER ---
-const btnPleinEcran = document.getElementById('btnPleinEcran');
-if(btnPleinEcran) btnPleinEcran.onclick = () => document.documentElement.requestFullscreen();
 
-let timerQuitter;
-const btnQuitter = document.getElementById('btnQuitter');
-if(btnQuitter) {
-    btnQuitter.onmousedown = btnQuitter.ontouchstart = () => {
-        timerQuitter = setTimeout(() => {
-            if (document.fullscreenElement) document.exitFullscreen();
-        }, 3000);
-    };
-    btnQuitter.onmouseup = btnQuitter.ontouchend = () => clearTimeout(timerQuitter);
+// --- 3. PLEIN ÉCRAN & QUITTER ---
+function basculerPleinEcran() {
+    if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen().catch(err => {
+            console.log("Erreur plein écran:", err);
+        });
+    } else {
+        if (document.exitFullscreen) {
+            document.exitFullscreen();
+        }
+    }
 }
 
-// --- 4. GESTION DE LA NAVIGATION ---
+// On lie le bouton au clic
+const btnPleinEcran = document.getElementById('btnPleinEcran');
+if(btnPleinEcran) {
+    btnPleinEcran.onclick = basculerPleinEcran;
+}
+
+// On désactive l'ancien bouton quitter qui n'est plus utilisé
+let timerQuitter;
+
+// --- 4. GESTION DE LA NAVIGATION (Version Propre) ---
 function ouvrirModule(type) {
-    // On cache tout
+    // 1. On cache absolument tout
     document.getElementById('menuPrincipal').style.display = 'none';
-    document.getElementById('moduleChiffres').style.display = 'none';
-    document.getElementById('moduleAlphabet').style.display = 'none';
-    document.getElementById('moduleFormes').style.display = 'none';
+    const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
+    modules.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
+
+    // 2. On affiche toujours les étoiles
     document.getElementById('canvasParticules').style.display = 'block';
 
+    // 3. On ouvre le bon module
     if(type === 'chiffres') {
         document.getElementById('moduleChiffres').style.display = 'block';
         parler("Comptons ensemble !");
@@ -101,8 +114,7 @@ function ouvrirModule(type) {
     } else if(type === 'formes') {
         document.getElementById('moduleFormes').style.display = 'block';
         parler("Le jardin des formes !");
-    }
-    if (type === 'dessin') {
+    } else if(type === 'dessin') {
         document.getElementById('moduleDessin').style.display = 'block';
         initialiserDessin();
         parler("Dessine avec tes doigts magiques !");
@@ -110,11 +122,12 @@ function ouvrirModule(type) {
 }
 
 function retourMenu() {
-    // On cache les modules
-    document.getElementById('moduleChiffres').style.display = 'none';
-    document.getElementById('moduleAlphabet').style.display = 'none';
-    document.getElementById('moduleFormes').style.display = 'none';
-    document.getElementById('moduleDessin').style.display = 'none';
+    // On cache tout ce qui est module
+    const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
+    modules.forEach(id => {
+        const el = document.getElementById(id);
+        if(el) el.style.display = 'none';
+    });
     
     // On réaffiche le menu
     document.getElementById('menuPrincipal').style.display = 'block';
