@@ -301,11 +301,17 @@ h1 {
 }
 
 #modeleFantome {
+  /* On descend de 500px à 350px pour que ça respire sur l'écran */
+    font-size: 350px !important; 
+    
     position: absolute; 
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
-    pointer-events: none; 
+    color: #000000 !important;
+    font-weight: 400;
+    z-index: 1;
+    pointer-events: none;
     
     /* NOIR ABSOLU ET OPAQUE */
     color: #000000 !important; 

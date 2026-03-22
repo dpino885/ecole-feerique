@@ -500,7 +500,13 @@ function afficherNouveauModele() {
     let caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
     
     afficheur.innerText = caractere;
-    parler(`Essaie de tracer le ${typeActuel} ${caractere.toLowerCase()} !`);
+
+    // Correction de la prononciation ici :
+    if (typeActuel === 'lettre') {
+        parler(`Essaie de tracer la lettre ${caractere.toLowerCase()} !`);
+    } else {
+        parler(`Essaie de tracer le chiffre ${caractere} !`);
+    }
 }
 
 // GESTION DU TRACÉ
@@ -540,17 +546,45 @@ function dessiner(e) {
     }
 }
 
+// On ajoute un petit délai pour ne pas couper son élan
+let timerVerification;
+
+function arreterDessin() {
+    if (enTrainDeDessiner && typeActuel !== 'libre') {
+        // On attend 1.5 seconde d'inactivité avant de vérifier si c'est fini
+        // Ça lui permet de lever le doigt et de le remettre pour finir sa lettre
+        clearTimeout(timerVerification);
+        timerVerification = setTimeout(verifierTracerFini, 1500); 
+    }
+    enTrainDeDessiner = false;
+    ctxDessin.beginPath();
+}
+
 function verifierTracerFini() {
+    if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
+
     const imageData = ctxDessin.getImageData(0, 0, canvasDessin.width, canvasDessin.height);
     const pixels = imageData.data;
     let pixelsColories = 0;
 
-    for (let i = 3; i < pixels.length; i += 40) { // Scan plus rapide
-        if (pixels[i] > 50) pixelsColories++;
+    for (let i = 3; i < pixels.length; i += 20) { 
+        if (pixels[i] > 100) pixelsColories++;
     }
 
-    // Seuil de réussite
-    if (pixelsColories > 1000) { 
+    // --- RÉGLAGE DYNAMIQUE DU SEUIL ---
+    const caractereActuel = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
+    
+    // Seuil par défaut pour les lettres larges (A, B, M, 8, etc.)
+    let seuilReussite = 3000; 
+
+    // Si c'est un caractère mince, on baisse le seuil de moitié
+    const caracteresMinces = ["I", "i", "1", "7", "L", "l", "J", "j", "T", "t"];
+    
+    if (caracteresMinces.includes(caractereActuel)) {
+        seuilReussite = 1000; // Beaucoup plus facile pour les traits fins
+    }
+
+    if (pixelsColories > seuilReussite) { 
         celebrerFinTracer();
     }
 }
@@ -559,18 +593,25 @@ function celebrerFinTracer() {
     if (estEnTrainDeCelebrer) return;
     estEnTrainDeCelebrer = true;
     
-    parler("C'est magnifique ! Tu as très bien tracé !");
+    // Message plus générique mais correct grammaticalement
+    let messageBravo = (typeActuel === 'lettre') ? 
+        "C'est magnifique ! Tu as très bien tracé la lettre !" : 
+        "C'est magnifique ! Tu as très bien tracé le chiffre !";
     
+    parler(messageBravo);
+
+    // Confettis
     for (let i = 0; i < 100; i++) {
         const p = new Particule(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
         p.couleur = `hsl(${Math.random() * 360}, 100%, 50%)`;
         particules.push(p);
     }
 
+    // On attend 6 secondes (plus long) avant de changer pour qu'elle admire son travail
     setTimeout(() => {
         effacerDessin(true); 
         estEnTrainDeCelebrer = false;
-    }, 5000); 
+    }, 6000); 
 }
 
 // ÉCOUTEURS D'ÉVÉNEMENTS
