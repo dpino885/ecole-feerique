@@ -1,4 +1,6 @@
-/* --- Style Général et Nouveau Décor --- */
+/* ==========================================================================
+   1. STYLE GÉNÉRAL ET DÉCOR (LE FOND)
+   ========================================================================== */
 body {
     margin: 0;
     padding: 0;
@@ -10,293 +12,422 @@ body {
     justify-content: center;
     align-items: center;
     color: white;
-
-    background: 
-
-        url('fond-realiste.png'); /* <--- CHANGE LE NOM ICI pour qu'il soit identique à ton fichier */
-
+    /* Ton image de fond réaliste */
+    background: url('fond-realiste.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    background-color: #1a0033; /* Couleur de secours */
+    background-color: #1a0033;
 }
 
-/* On s'assure que les modules ne cachent pas l'image */
-#moduleDessin, .module-ecran {
+/* On s'assure que rien ne bloque l'image de fond */
+.module-ecran, #moduleDessin {
     background: transparent !important;
 }
 
+
+
+/* ==========================================================================
+   2. LES ÉTAGES (Z-INDEX) - LA GESTION DES COUCHES
+   ========================================================================== */
+/* Étage 10 : Le canevas de dessin (tout au fond du jeu) */
 #canvasDessin {
+    position: fixed;
+    top: 0;
+    left: 0;
     z-index: 10;
     background: transparent;
-}
-
-#canvasParticules {
-    z-index: 20;
-    pointer-events: none;
-}
-
-/* Le canvas des étoiles doit être tout en haut */
-#canvasParticules {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 20; 
-    pointer-events: none; /* Laisse passer les clics */
-    background: transparent;
-}
-
-/* Le canvas du dessin est juste en dessous */
-#canvasDessin {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 10; /* Étage 10 */
-    background: transparent; /* On met le fond ici directement */
     touch-action: none;
 }
 
-/* --- L'Interface (Menu Principal) --- */
-.interface {
-    position: fixed; /* Prend tout l'écran */
+/* Étage 100 : L'arène des fées et les modules */
+.module-ecran {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    z-index: 30;
-    text-align: center;
-    background: transparent; /* ON ENLÈVE LE BACKGROUND DU MENU */
-    box-shadow: none;        /* On enlève l'ombre */
+    z-index: 100;
+    pointer-events: none; /* Laisse passer les clics vers les boutons/fées */
     display: flex;
     flex-direction: column;
-    justify-content: space-between; /* Espace entre le titre et le reste */
+    align-items: center;
+    justify-content: center;
+}
+
+/* Étage 500 : Les éléments cliquables dans les jeux */
+.fee-cliquable, .lettre-bouton, .forme-btn, .barre-outils {
+    pointer-events: auto !important;
+    z-index: 500;
+}
+
+/* Étage 1000 : Le menu principal */
+.interface {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    pointer-events: none;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
     padding: 40px 0;
-    pointer-events: none; /* Permet de cliquer à travers si besoin */
+}
+.interface > * { pointer-events: auto; } /* Rend les boutons du menu cliquables */
+
+/* Étage 5000 : La poussière d'étoiles (Visuelle seulement) */
+#canvasParticules {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 5000;
+    pointer-events: none;
+    background: transparent;
 }
 
-/* On s'assure que les boutons redeviennent cliquables */
-.interface > * {
-    pointer-events: auto;
+/* Étage SUPRÊME : Le bouton retour global (Le boss) */
+#btnRetourGlobal {
+    z-index: 99999 !important;
+    pointer-events: auto !important;
 }
 
+/* ==========================================================================
+   3. JEU DES FÉES (CHIFFRES)
+   ========================================================================== */
+#compteurFées {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 2000;
+    background: rgba(0, 0, 0, 0.6);
+    color: white;
+    padding: 10px 30px;
+    border-radius: 25px;
+    font-size: 2rem;
+    text-shadow: 2px 2px 5px black;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+.fee-cliquable {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    font-size: 100px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    filter: drop-shadow(0 0 15px white) drop-shadow(0 0 5px black);
+    animation: volMagique 1.8s infinite alternate ease-in-out;
+}
+
+@keyframes volMagique {
+    from { transform: translateY(0px) rotate(-8deg); }
+    to { transform: translateY(-30px) rotate(8deg); }
+}
+
+#areneFées {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+}
+
+/* ==========================================================================
+   4. MENU ET BOUTONS
+   ========================================================================== */
+/* --- LE TITRE (FORÊT ENCHANTÉE) --- */
 h1 {
+    width: 100%;
+    text-align: center;
     color: #e1bee7;
-    font-size: 3rem;
-    text-shadow: 0 0 15px rgba(156, 39, 176, 0.8);
+    font-size: 3.5rem;
+    text-shadow: 0 0 20px rgba(156, 39, 176, 0.9);
     margin: 0;
-    padding-top: 20px;
+    position: absolute;    /* On le détache du flux pour qu'il ne pousse pas les boutons */
+    top: 10%;              /* Il restera à 10% du haut de l'écran */
+    pointer-events: none;
 }
 
-/* --- Dispersion des Boutons --- */
+/* --- L'INTERFACE (CONTENEUR GLOBAL DU MENU) --- */
+.interface {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 1000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;    /* Centre tout horizontalement */
+    justify-content: center; /* CENTRE TOUT VERTICALEMENT */
+    pointer-events: none;
+    padding: 0;             /* On enlève les paddings qui poussent le menu */
+}
+
+/* --- LA GRILLE DE BOUTONS (CENTRÉE) --- */
 .menu-boutons {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* Deux colonnes */
-    gap: 40px;                     /* Grand espace entre les boutons */
-    justify-items: center;
-    align-content: center;
-    flex-grow: 1;                  /* Prend l'espace central */
+    grid-template-columns: 1fr 1fr; /* 2 colonnes */
+    gap: 30px;
     padding: 20px;
+    pointer-events: auto;
+    /* On ne met pas de flex-grow ici pour que ça reste compact au centre */
 }
 
 .menu-boutons button {
-    display: block;
-    width: 220px;          /* Un peu plus petit pour mieux disperser */
-    margin: 10px;
-    padding: 25px;
-    font-size: 1.4rem;
-    border: 2px solid #e1bee7;
+    padding: 30px;
+    font-size: 1.5rem;
+    border: 3px solid #e1bee7;
     border-radius: 50px;
     background: linear-gradient(135deg, #9c27b0, #7b1fa2);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.4);
-    /* On peut ajouter une petite rotation aléatoire pour le style "éparpillé" */
+    color: white;
+    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    cursor: pointer;
 }
 
-/* Un bouton sur deux un peu décalé pour le look "dispersé" */
-.menu-boutons button:nth-child(even) {
-    transform: translateY(20px);
-}
+.menu-boutons button:nth-child(even) { transform: translateY(20px); }
 
-/* --- Bouton Plein Écran Unique et Centré --- */
+
+/* --- LE BOUTON PLEIN ÉCRAN --- */
+/* --- Bouton Plein Écran (Visibilité Restaurée) --- */
 .controles-ecran {
     position: fixed;
-    bottom: 20px;
+    bottom: 30px; /* Un peu plus haut que le bord pour les pouces */
     left: 0;
     right: 0;
     display: flex;
     justify-content: center;
-    z-index: 1000;
+    z-index: 6000; /* <--- PASSE DEVANT LES ÉTOILES (5000) */
+    pointer-events: auto !important;
 }
 
 .controles-ecran button {
-    background: rgba(49, 27, 146, 0.4);
+    background: rgba(49, 27, 146, 0.7); /* Plus opaque pour mieux le voir */
     color: #e1bee7;
-    border: 1px solid rgba(123, 31, 162, 0.5);
-    padding: 8px 20px;
-    border-radius: 20px;
-    font-size: 0.8rem;
+    border: 2px solid rgba(225, 190, 231, 0.8);
+    padding: 12px 25px;
+    border-radius: 25px;
+    font-size: 1rem;
     cursor: pointer;
-    backdrop-filter: blur(3px);
+    backdrop-filter: blur(5px);
     transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
 }
 
-/* On force la disparition du bouton Quitter */
-#btnQuitter {
-    display: none !important;
-}
-/* --- Style des Modules --- */
-.module-ecran {
-    position: relative;
-    z-index: 20;
-    text-align: center;
-    width: 90%;
-    max-width: 600px;
+.controles-ecran button:active {
+    transform: scale(0.9);
+    background: rgba(123, 31, 162, 0.9);
 }
 
-.grille-chiffres {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr); /* 5 colonnes sur PC */
-    gap: 15px;
-    margin-top: 20px;
-}
-
-/* Sur mobile, on passe à 2 colonnes pour que ce soit gros */
-@media (max-width: 600px) {
-    .grille-chiffres { grid-template-columns: repeat(2, 1fr); }
-}
-
-.grille-chiffres button {
-    aspect-ratio: 1 / 1;
-    font-size: 3rem;
-    border-radius: 20px;
-    border: 3px solid #e1bee7;
-    background: #7b1fa2;
-    color: white;
-    box-shadow: 0 5px 0 #4a148c;
-    cursor: pointer;
-}
-
-.btn-retour {
-    position: absolute;
-    top: -50px;
-    left: 0;
-    padding: 10px 20px;
-    background: #ad1457;
-    color: white;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-}
-
-.grille-alphabet {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); /* S'adapte à l'écran */
-    gap: 10px;
-    margin-top: 20px;
-    max-height: 70vh; /* Évite que ça dépasse sur petit écran */
-    overflow-y: auto; /* Permet de défiler si besoin */
-    padding: 10px;
-}
-
-.lettre-bouton {
-    aspect-ratio: 1 / 1;
-    font-size: 2rem;
-    border-radius: 15px;
-    border: none;
-    color: white;
-    font-weight: bold;
-    cursor: pointer;
-    box-shadow: 0 4px 0 rgba(0,0,0,0.3);
-    transition: transform 0.1s;
-}
-
-.lettre-bouton:active {
-    transform: translateY(4px);
-    box-shadow: none;
-}
-
-/* --- Style du Module Formes --- */
-.grille-formes {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 20px;
-    margin-top: 30px;
-}
-
-.forme-btn {
-    width: 120px;
-    height: 120px;
-    border: none;
-    cursor: pointer;
-    font-size: 4rem;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    color: white;
-    transition: transform 0.2s;
-    box-shadow: 0 8px 15px rgba(0,0,0,0.3);
-}
-
-.forme-btn:active { transform: scale(0.9); }
-
-/* Couleurs et arrondis spécifiques */
-.carre { background: #42a5f5; border-radius: 10px; }
-.cercle { background: #ff7043; border-radius: 50%; }
-.triangle { background: #66bb6a; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
-.etoile-bouton { background: #fbc02d; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
-.coeur { background: #ec407a; clip-path: polygon(50% 15%, 80% 0%, 100% 20%, 50% 100%, 0% 20%, 20% 0%); }
-
-/* --- Style du Module Dessin --- */
+/* ==========================================================================
+   5. DESSIN ET OUTILS
+   ========================================================================== */
 #moduleDessin {
-    width: 100vw;
-    height: 100vh;
     position: fixed;
     top: 0;
     left: 0;
-    background: transparent !important; /* Pour voir l'image du body en dessous */
-    z-index: 5;
+    width: 100vw;
+    height: 100vh;
+    z-index: 100;
+    pointer-events: none;
 }
 
+#canvasDessin {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 150; 
+    touch-action: none; 
+    pointer-events: auto !important;
+    cursor: crosshair;
+}
 
 .barre-outils {
     position: fixed;
     top: 20px;
     left: 50%;
     transform: translateX(-50%);
+    z-index: 1000; 
     display: flex;
-    flex-wrap: wrap; /* Permet de passer à la ligne sur petit écran */
-    justify-content: center;
     gap: 10px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 10px;
-    border-radius: 30px;
-    z-index: 100;
-    backdrop-filter: blur(5px);
+    background: rgba(255, 255, 255, 0.3);
+    padding: 15px;
+    border-radius: 40px;
+    backdrop-filter: blur(8px);
+    pointer-events: auto !important;
 }
 
 .barre-outils button {
-    width: 40px;
-    height: 40px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     border: 2px solid white;
     cursor: pointer;
-    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* ==========================================================================
+   6. MODULE ALPHABET (MODE SÉQUENTIEL)
+   ========================================================================== */
+
+   /* On s'assure que le module lui-même ne bloque rien */
+#moduleAlphabet {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none; /* Laisse passer les clics vers les sous-éléments */
+}
+
+/* --- Écran de démarrage Alphabet (Centrage Absolu) --- */
+#ecranDepartAlphabet {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    
+    /* Le trio magique pour centrer */
+    display: flex !important;
+    justify-content: center !important; /* Centre horizontalement */
+    align-items: center !important;     /* Centre verticalement */
+    flex-direction: column;            /* Bouton au-dessus du texte */
+
+    background: transparent;           /* Laisse voir la forêt derrière */
+    z-index: 8000;                     /* Passe par-dessus les étoiles */
+    pointer-events: auto !important;
+}
+
+.btn-jouer-alphabet {
+    font-size: 5rem !important;      /* ÉNORME texte/icône */
+    padding: 50px 100px !important;  /* ÉNORME zone de clic */
+    border-radius: 80px;             /* Bords très arrondis */
+    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    color: white;
+    border: 8px solid #ffffff;
+    cursor: pointer;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    
+    /* Animation pour attirer l'oeil */
+    animation: battement 2s infinite ease-in-out;
     transition: transform 0.2s;
+    margin: 0 !important;
 }
 
-.barre-outils button:active {
-    transform: scale(0.8);
+.btn-jouer-alphabet:active {
+    transform: scale(0.9);
+    background: #1b5e20;
 }
 
-/* Boutons spéciaux (Retour et Poubelle) */
-.btn-retour-dessin, .barre-outils button:last-child {
-    background: #4a148c !important;
-    font-size: 1.2rem;
+/* Animation de "respiration" du bouton */
+@keyframes battement {
+    0% { transform: scale(1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+    50% { transform: scale(1.05); box-shadow: 0 30px 60px rgba(76, 175, 80, 0.6); }
+    100% { transform: scale(1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
+}
+
+/* On force la zone de jeu à être en mode Flex et centré une fois ouverte */
+#zoneLettreMagique {
+    display: none; /* Géré par le JS */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: auto !important;
+}
+
+.navigation-alphabet {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    width: 100%;
+}
+
+.nav-btn {
+    width: 80px;
+    height: 80px;
+    font-size: 2.5rem;
+    border-radius: 50%;
+    border: 4px solid white;
+    background: rgba(255, 255, 255, 0.2);
+    color: white;
+    cursor: pointer;
+    backdrop-filter: blur(5px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.conteneur-lettre-centrale {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* La lettre géante cliquable */
+#grandeLettre {
+    width: 230px;
+    height: 230px;
+    font-size: 140px;
+    border-radius: 50px;
+    border: 8px solid white;
+    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
+    color: white;
+    cursor: pointer;
+    box-shadow: 0 15px 30px rgba(0,0,0,0.4);
+    transition: transform 0.2s;
     display: flex;
     justify-content: center;
     align-items: center;
 }
+
+#grandeLettre:active {
+    transform: scale(0.9) rotate(5deg);
+}
+
+/* Le mot exemple sous la lettre */
+#motExemple {
+    font-size: 2.5rem;
+    margin-top: 25px;
+    color: #ffd700;
+    text-shadow: 2px 2px 10px black;
+    font-weight: bold;
+    background: rgba(0,0,0,0.3);
+    padding: 10px 40px;
+    border-radius: 30px;
+}
+/* ==========================================================================
+   7. MODULES FORMES
+   ========================================================================== */
+.grille-formes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 25px;
+}
+
+.forme-btn {
+    width: 130px;
+    height: 130px;
+    font-size: 4.5rem;
+    border: none;
+    border-radius: 20px;
+}
+/* Couleurs formes */
+.carre { background: #42a5f5; }
+.cercle { background: #ff7043; border-radius: 50%; }
+.triangle { background: #66bb6a; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+

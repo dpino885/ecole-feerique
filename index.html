@@ -7,78 +7,76 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
     <canvas id="canvasParticules"></canvas>
 
     <div class="interface" id="menuPrincipal">
         <h1>Forêt Enchantée</h1>
-        
         <div class="menu-boutons">
             <button onclick="ouvrirModule('chiffres')">🔢 CHIFFRES</button>
             <button onclick="ouvrirModule('alphabet')">ABC ALPHABET</button>
             <button onclick="ouvrirModule('formes')">🟦 FORMES</button>
             <button onclick="ouvrirModule('dessin')">🎨 DESSIN</button>
         </div>
-
-<div class="controles-ecran">
-    <button onclick="basculerPleinEcran()">Mode Plein Écran</button>
-</div>
+        <div class="controles-ecran">
+            <button id="btnPleinEcran" onclick="basculerPleinEcran()">Mode Plein Écran</button>
+        </div>
     </div>
 
-    <div id="moduleChiffres" class="module-ecran" style="display: none;">
-        <button class="btn-retour" onclick="retourMenu()">⬅ Retour</button>
-        <h2 id="titreChiffre">Choisis un chiffre magique !</h2>
-        <div class="grille-chiffres">
-            <button onclick="clicChiffre(1)">1</button>
-            <button onclick="clicChiffre(2)">2</button>
-            <button onclick="clicChiffre(3)">3</button>
-            <button onclick="clicChiffre(4)">4</button>
-            <button onclick="clicChiffre(5)">5</button>
-            <button onclick="clicChiffre(6)">6</button>
-            <button onclick="clicChiffre(7)">7</button>
-            <button onclick="clicChiffre(8)">8</button>
-            <button onclick="clicChiffre(9)">9</button>
-            <button onclick="clicChiffre(10)">10</button>
-        </div>
+    <button id="btnRetourGlobal" onclick="retourMenu()" 
+        style="display:none; position:fixed; top:20px; left:20px; z-index:99999; width:80px; height:80px; font-size:40px; background:rgba(49, 27, 146, 0.9); border:4px solid white; border-radius:50%; cursor:pointer; align-items:center; justify-content:center;">
+        🏠
+    </button>
+
+    <div id="moduleChiffres" class="module-ecran" style="display:none;">
+        <h2 id="compteurFées">Fées trouvées : 0</h2>
+        <div id="areneFées"></div>
     </div>
 
 <div id="moduleAlphabet" class="module-ecran" style="display: none;">
-    <button class="btn-retour" onclick="retourMenu()">⬅ Retour</button>
-    <h2>L'Alphabet des Fées</h2>
-    <div class="grille-alphabet" id="grilleABC">
+   <div id="ecranDepartAlphabet">
+    <button class="btn-jouer-alphabet" onclick="demarrerAlphabet()">▶️ JOUER</button>
+    <p>Clique pour commencer l'alphabet !</p>
+</div>
+
+    <div id="zoneLettreMagique" style="display: none;">
+        <div class="navigation-alphabet">
+            <button class="nav-btn" onclick="lettrePrecedente()">⬅️</button>
+            <div class="conteneur-lettre-centrale">
+                <button id="grandeLettre" onclick="lettreSuivante()"></button>
+                <p id="motExemple"></p>
+            </div>
+            <button class="nav-btn" onclick="lettreSuivante()">➡️</button>
         </div>
-</div>
-
-<div id="moduleFormes" class="module-ecran" style="display: none;">
-    <button class="btn-retour" onclick="retourMenu()">⬅ Retour</button>
-    <h2>Formes Mystérieuses</h2>
-    <div class="grille-formes">
-        <button class="forme-btn carre" onclick="clicForme('Carré')"><span>■</span></button>
-        <button class="forme-btn cercle" onclick="clicForme('Cercle')"><span>●</span></button>
-        <button class="forme-btn triangle" onclick="clicForme('Triangle')"><span>▲</span></button>
-        <button class="forme-btn etoile-bouton" onclick="clicForme('Étoile')"><span>★</span></button>
-        <button class="forme-btn coeur" onclick="clicForme('Cœur')"><span>❤</span></button>
     </div>
 </div>
 
-<div id="moduleDessin" class="module-ecran" style="display:none;">
-    <canvas id="canvasDessin"></canvas>
-    
-    <div class="barre-outils">
-        <button class="btn-retour-dessin" onclick="retourMenu()">🏠</button>
-        <button style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
-        <button style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
-        <button style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
-        <button style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
-        <button style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
-        <button style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
-        <button style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
-        
-        <button onclick="effacerDessin()">🗑️</button>
+
+    <div id="moduleFormes" class="module-ecran" style="display: none;">
+        <h2>Formes Mystérieuses</h2>
+        <div class="grille-formes">
+            <button class="forme-btn carre" onclick="clicForme('Carré')"><span>■</span></button>
+            <button class="forme-btn cercle" onclick="clicForme('Cercle')"><span>●</span></button>
+            <button class="forme-btn triangle" onclick="clicForme('Triangle')"><span>▲</span></button>
+            <button class="forme-btn etoile-bouton" onclick="clicForme('Étoile')"><span>★</span></button>
+            <button class="forme-btn coeur" onclick="clicForme('Cœur')"><span>❤</span></button>
+        </div>
     </div>
-</div>
+
+    <div id="moduleDessin" class="module-ecran" style="display:none;">
+        <canvas id="canvasDessin"></canvas>
+        <div class="barre-outils">
+            <button class="btn-retour-dessin" onclick="retourMenu()">🏠</button>
+            <button style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
+            <button style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
+            <button style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
+            <button style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
+            <button style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
+            <button style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
+            <button style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
+            <button onclick="effacerDessin()">🗑️</button>
+        </div>
+    </div>
 
     <script src="script.js"></script> 
-
 </body>
 </html>

@@ -1,5 +1,8 @@
-// --- 1. CONFIGURATION DE LA VOIX DE FÉE ---
+// ==========================================================================
+// 1. CONFIGURATION DE LA VOIX ET DES ÉTOILES
+// ==========================================================================
 function parler(message) {
+    window.speechSynthesis.cancel(); // Arrête la voix précédente pour ne pas bégayer
     const voix = new SpeechSynthesisUtterance(message);
     voix.lang = 'fr-FR';
     voix.pitch = 1.8; 
@@ -7,7 +10,6 @@ function parler(message) {
     window.speechSynthesis.speak(voix);
 }
 
-// --- 2. LA TRAÎNÉE D'ÉTOILES (PARTICULES) ---
 const canvas = document.getElementById('canvasParticules');
 const ctx = canvas.getContext('2d');
 let particules = [];
@@ -60,67 +62,46 @@ gererParticules();
 function creerTrainee(e) {
     let x = e.touches ? e.touches[0].clientX : e.clientX;
     let y = e.touches ? e.touches[0].clientY : e.clientY;
-    
-    // On crée 5 étoiles à chaque mouvement
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < 3; i++) {
         let p = new Particule(x, y);
-        
-        // --- LA CORRECTION EST ICI ---
-        // Si le module de dessin est ouvert, on utilise la couleurActuelle du pinceau.
-        // Sinon, on utilise la couleur mauve par défaut du menu.
         const moduleDessin = document.getElementById('moduleDessin');
         if (moduleDessin && moduleDessin.style.display === 'block') {
             p.couleur = couleurActuelle; 
         }
-        // Si ce n'est pas le dessin, p.couleur garde la couleur mauve 
-        // définie dans le constructor de la classe Particule.
-        
         particules.push(p);
     }
 }
 window.addEventListener('mousemove', creerTrainee);
 window.addEventListener('touchmove', creerTrainee);
 
-
-// --- 3. PLEIN ÉCRAN & QUITTER ---
+// ==========================================================================
+// 2. NAVIGATION ET PLEIN ÉCRAN
+// ==========================================================================
 function basculerPleinEcran() {
     if (!document.fullscreenElement) {
-        document.documentElement.requestFullscreen().catch(err => {
-            console.log("Erreur plein écran:", err);
-        });
+        document.documentElement.requestFullscreen().catch(err => console.log(err));
     } else {
-        if (document.exitFullscreen) {
-            document.exitFullscreen();
-        }
+        document.exitFullscreen();
     }
 }
 
-// On lie le bouton au clic
-const btnPleinEcran = document.getElementById('btnPleinEcran');
-if(btnPleinEcran) {
-    btnPleinEcran.onclick = basculerPleinEcran;
-}
-
-// On désactive l'ancien bouton quitter qui n'est plus utilisé
-let timerQuitter;
-
-// --- 4. GESTION DE LA NAVIGATION (Version Propre) ---
 function ouvrirModule(type) {
-    // 1. On cache absolument tout
+    // On cache le menu et on montre le bouton retour
     document.getElementById('menuPrincipal').style.display = 'none';
+    document.getElementById('btnRetourGlobal').style.display = 'flex';
+
+    // On cache tous les modules
     const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
     modules.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = 'none';
     });
 
-    // 2. On affiche toujours les étoiles
-    document.getElementById('canvasParticules').style.display = 'block';
-
-    // 3. On ouvre le bon module
+    // Logique spécifique par module
     if(type === 'chiffres') {
         document.getElementById('moduleChiffres').style.display = 'block';
-        parler("Comptons ensemble !");
+        parler("Trouve les fées cachées et compte avec moi !");
+        initialiserJeuFées();
     } else if(type === 'alphabet') {
         document.getElementById('moduleAlphabet').style.display = 'block';
         genererAlphabet();
@@ -130,41 +111,77 @@ function ouvrirModule(type) {
         parler("Le jardin des formes !");
     } else if(type === 'dessin') {
         document.getElementById('moduleDessin').style.display = 'block';
+        // Le dessin a son propre bouton retour dans sa barre d'outils
+        document.getElementById('btnRetourGlobal').style.display = 'none';
         initialiserDessin();
         parler("Dessine avec tes doigts magiques !");
     }
 }
 
 function retourMenu() {
-    // On cache tout ce qui est module
+    document.getElementById('btnRetourGlobal').style.display = 'none';
     const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
     modules.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = 'none';
     });
-    
-    // On réaffiche le menu
-    document.getElementById('menuPrincipal').style.display = 'block';
+    document.getElementById('menuPrincipal').style.display = 'flex';
 }
 
-// --- 5. LOGIQUE DES MODULES ---
-// --- LOGIQUE DES CHIFFRES ---
-function clicChiffre(n) {
-    // On change ici pour que l'IA dise "Le chiffre..."
-    parler(`Le chiffre ${n.toString()} !`); 
-    
-    // Effet visuel : on fait exploser des étoiles au centre !
-    const centreX = window.innerWidth / 2;
-    const centreY = window.innerHeight / 2;
-    
-    // On crée autant de particules que le chiffre cliqué (x10 pour que ce soit impressionnant)
-    for (let i = 0; i < n * 10; i++) {
-        setTimeout(() => {
-            particules.push(new Particule(centreX, centreY));
-        }, i * 20); 
+// ==========================================================================
+// 3. JEU DES FÉES (CHIFFRES)
+// ==========================================================================
+let scoreFées = 0;
+function initialiserJeuFées() {
+    scoreFées = 0;
+    mettreAJourCompteur();
+    const arene = document.getElementById('areneFées');
+    if(arene) {
+        arene.innerHTML = "";
+        setTimeout(apparaitreFee, 1000);
     }
 }
 
+function apparaitreFee() {
+    const arene = document.getElementById('areneFées');
+    if(!arene || document.getElementById('moduleChiffres').style.display === 'none') return;
+
+    const fee = document.createElement('div');
+    fee.className = 'fee-cliquable';
+    fee.innerHTML = "🧚‍♀️";
+
+    const margeH = window.innerWidth * 0.20;
+    const margeV = window.innerHeight * 0.20;
+    const x = margeH + Math.random() * (window.innerWidth - (margeH * 2) - 100);
+    const y = margeV + Math.random() * (window.innerHeight - (margeV * 2) - 100);
+    
+    fee.style.left = `${x}px`;
+    fee.style.top = `${y}px`;
+
+    fee.onclick = function(e) {
+        e.stopPropagation();
+        scoreFées++;
+        parler(scoreFées.toString()); 
+        for (let i = 0; i < 20; i++) {
+            const p = new Particule(x + 75, y + 75);
+            p.couleur = "#ffd700"; 
+            particules.push(p);
+        }
+        fee.remove();
+        mettreAJourCompteur();
+        setTimeout(apparaitreFee, 800);
+    };
+    arene.appendChild(fee);
+}
+
+function mettreAJourCompteur() {
+    const texte = document.getElementById('compteurFées');
+    if(texte) texte.innerText = `Fées trouvées : ${scoreFées}`;
+}
+
+// ==========================================================================
+// 4. ALPHABET SÉQUENTIEL MAGIQUE
+// ==========================================================================
 const motsMagiques = {
     'A': 'Arc-en-ciel', 'B': 'Baguette', 'C': 'Château', 'D': 'Dragon',
     'E': 'Étoile', 'F': 'Fée', 'G': 'Gâteau', 'H': 'Hibou',
@@ -175,82 +192,141 @@ const motsMagiques = {
     'Y': 'Yack', 'Z': 'Zèbre'
 };
 
+let indexLettreActuelle = 0;
+
+/**
+ * Prépare le module quand on l'ouvre depuis le menu
+ */
 function genererAlphabet() {
-    const grille = document.getElementById('grilleABC');
-    grille.innerHTML = ""; 
+    const ecranDepart = document.getElementById('ecranDepartAlphabet');
+    const zoneJeu = document.getElementById('zoneLettreMagique');
     
-    Object.keys(motsMagiques).forEach((lettre, index) => {
-        const btn = document.createElement('button');
-        btn.innerText = lettre;
-        btn.className = 'lettre-bouton';
-        
-        const teinte = (index * (360 / 26));
-        btn.style.background = `hsl(${teinte}, 70%, 60%)`;
-        
-        btn.onclick = () => {
-            const mot = motsMagiques[lettre];
-            
-            // Astuce ultime : on dit "La lettre" devant pour éviter "Monsieur"
-            parler(`La lettre ${lettre.toLowerCase()}... comme ${mot} !`);
-            
-            // Explosion de particules
-            for (let i = 0; i < 15; i++) {
-                const p = new Particule(window.innerWidth/2, window.innerHeight/2);
-                p.couleur = `hsl(${teinte}, 100%, 70%)`;
-                particules.push(p);
-            }
-        };
-        
-        // C'est ici qu'on ajoute le bouton à la grille
-        grille.appendChild(btn);
-    });
+    if(ecranDepart && zoneJeu) {
+        ecranDepart.style.display = 'block';
+        zoneJeu.style.display = 'none';
+    }
+    indexLettreActuelle = 0;
 }
 
-function clicForme(nom) {
-    parler(`C'est un ${nom} !`);
-    const x = window.innerWidth / 2;
-    const y = window.innerHeight / 2;
-    for (let i = 0; i < 20; i++) {
-        particules.push(new Particule(x, y));
+/**
+ * Lancé par le gros bouton "JOUER"
+ */
+function demarrerAlphabet() {
+    console.log("Tentative de démarrage de l'alphabet..."); // Pour déboguer
+    const ecran = document.getElementById('ecranDepartAlphabet');
+    const zone = document.getElementById('zoneLettreMagique');
+    
+    if (ecran && zone) {
+        ecran.style.setProperty('display', 'none', 'important');
+        zone.style.setProperty('display', 'flex', 'important');
+        indexLettreActuelle = 0; // On s'assure de repartir à A
+        afficherLettre();
+    } else {
+        console.error("Erreur : Les IDs ecranDepartAlphabet ou zoneLettreMagique sont introuvables !");
     }
 }
 
-// --- LOGIQUE DU DESSIN ---
+/**
+ * Gère l'affichage et la voix pour la lettre en cours
+ */
+function afficherLettre() {
+    const alphabet = Object.keys(motsMagiques);
+    const lettre = alphabet[indexLettreActuelle];
+    const mot = motsMagiques[lettre];
+    
+    const bouton = document.getElementById('grandeLettre');
+    const texteMot = document.getElementById('motExemple');
+    
+    if (bouton && texteMot) {
+        bouton.innerText = lettre;
+        texteMot.innerText = mot;
+        
+        // Couleur dynamique (arc-en-ciel au fil de l'alphabet)
+        const teinte = (indexLettreActuelle * (360 / 26));
+        bouton.style.background = `linear-gradient(135deg, hsl(${teinte}, 70%, 60%), hsl(${teinte}, 80%, 40%))`;
+        
+        // La fée parle
+        parler(`La lettre ${lettre.toLowerCase()}... comme ${mot} !`);
+        
+        // Explosion d'étoiles au centre
+        for (let i = 0; i < 20; i++) {
+            const p = new Particule(window.innerWidth / 2, window.innerHeight / 2);
+            p.couleur = `hsl(${teinte}, 100%, 70%)`;
+            particules.push(p);
+        }
+    }
+}
+
+function lettreSuivante() {
+    const alphabet = Object.keys(motsMagiques);
+    indexLettreActuelle++;
+    
+    if (indexLettreActuelle >= alphabet.length) {
+        indexLettreActuelle = 0;
+        parler("Bravo championne ! On recommence au début !");
+    }
+    afficherLettre();
+}
+
+function lettrePrecedente() {
+    const alphabet = Object.keys(motsMagiques);
+    indexLettreActuelle--;
+    
+    if (indexLettreActuelle < 0) {
+        indexLettreActuelle = alphabet.length - 1;
+    }
+    afficherLettre();
+}
+
+// ==========================================================================
+// 5. LOGIQUE DES FORMES
+// ==========================================================================
+
+function clicForme(nom) {
+    parler(`C'est un ${nom} !`);
+    for (let i = 0; i < 20; i++) {
+        particules.push(new Particule(window.innerWidth / 2, window.innerHeight / 2));
+    }
+}
+
+// ==========================================================================
+// 6. LOGIQUE DU DESSIN
+// ==========================================================================
 const canvasDessin = document.getElementById('canvasDessin');
 const ctxDessin = canvasDessin.getContext('2d');
 let enTrainDeDessiner = false;
 let couleurActuelle = 'yellow';
 
 function initialiserDessin() {
-    // --- NOUVEAU : On s'assure que le canvas des étoiles est prêt ---
-    canvas.width = window.innerWidth;  // On redimensionne le canvas des étoiles
-    canvas.height = window.innerHeight;
-    document.getElementById('canvasParticules').style.display = 'block'; // On force l'affichage
+    const canvasDessin = document.getElementById('canvasDessin');
+    const ctxDessin = canvasDessin.getContext('2d');
+    
+    // On donne la taille réelle de l'écran au canvas
     canvasDessin.width = window.innerWidth;
     canvasDessin.height = window.innerHeight;
+    
+    // Paramètres du pinceau magique
     ctxDessin.lineJoin = 'round';
     ctxDessin.lineCap = 'round';
-    ctxDessin.lineWidth = 8;
+    ctxDessin.lineWidth = 12; // Un peu plus gros pour ta fille
+    
+    // On s'assure que le mode dessin est bien visible
+    document.getElementById('moduleDessin').style.zIndex = "500";
 }
-
 
 function changerCouleur(c) { 
     couleurActuelle = c; 
-    
-    // L'IA nomme la couleur avec une description féerique
-    if (c === '#ff0000') parler("Rouge... comme une pomme d'amour !");
-    if (c === '#00ff00') parler("Vert... comme l'herbe de la forêt !");
-    if (c === '#0000ff') parler("Bleu... comme le ciel des fées !");
-    if (c === '#ffff00') parler("Jaune... comme le chaud soleil !");
-    if (c === '#ff00ff') parler("Mauve... comme une fleur magique !");
-    if (c === '#ff9800') parler("Orange... comme une petite citrouille !");
-    if (c === '#ffffff') parler("Blanc... comme la neige de l'hiver !");
+    const noms = {
+        '#ff0000': "Rouge comme une pomme !", '#00ff00': "Vert comme l'herbe !",
+        '#0000ff': "Bleu comme le ciel !", '#ffff00': "Jaune comme le soleil !",
+        '#ff00ff': "Mauve comme une fleur !", '#ff9800': "Orange comme une citrouille !",
+        '#ffffff': "Blanc comme la neige !"
+    };
+    parler(noms[c] || "Couleur magique !");
 }
-
 
 function effacerDessin() { ctxDessin.clearRect(0, 0, canvasDessin.width, canvasDessin.height); }
 
-// Fonctions de dessin
 function demarrerDessin(e) {
     enTrainDeDessiner = true;
     dessiner(e);
@@ -263,15 +339,11 @@ function arreterDessin() {
 
 function dessiner(e) {
     if (!enTrainDeDessiner) return;
-    
-    // On récupère les coordonnées (souris ou doigt)
     let x = e.touches ? e.touches[0].clientX : e.clientX;
     let y = e.touches ? e.touches[0].clientY : e.clientY;
 
-    // --- LE TRAIT PERMANENT ---
     ctxDessin.strokeStyle = couleurActuelle;
-    ctxDessin.lineWidth = 10; // Un trait un peu plus épais pour les petits doigts
-    ctxDessin.shadowBlur = 15; // Lueur autour du trait
+    ctxDessin.shadowBlur = 10;
     ctxDessin.shadowColor = couleurActuelle;
 
     ctxDessin.lineTo(x, y);
@@ -279,42 +351,16 @@ function dessiner(e) {
     ctxDessin.beginPath();
     ctxDessin.moveTo(x, y);
     
-    // --- LA POUSSIÈRE D'ÉTOILES (Effet éphémère) ---
-    // On crée 3 étoiles à chaque petit mouvement pour un effet dense
-    for(let i = 0; i < 3; i++) {
+    for(let i = 0; i < 2; i++) {
         let p = new Particule(x, y);
-        p.couleur = couleurActuelle; // L'étoile prend la couleur du pinceau choisi
-        p.taille = Math.random() * 4 + 1; // Des étoiles de tailles variées
+        p.couleur = couleurActuelle;
         particules.push(p);
     }
 }
 
-
-// Événements
 canvasDessin.addEventListener('mousedown', demarrerDessin);
 canvasDessin.addEventListener('mousemove', dessiner);
 window.addEventListener('mouseup', arreterDessin);
-
 canvasDessin.addEventListener('touchstart', demarrerDessin);
 canvasDessin.addEventListener('touchmove', dessiner);
 window.addEventListener('touchend', arreterDessin);
-
-// Modifier ouvrirModule pour le dessin
-const fnOuvrirOriginale = ouvrirModule;
-ouvrirModule = function(type) {
-    if (type === 'dessin') {
-        document.getElementById('menuPrincipal').style.display = 'none';
-        document.getElementById('moduleDessin').style.display = 'block';
-        initialiserDessin();
-        parler("Dessine avec tes doigts magiques !");
-    } else {
-        fnOuvrirOriginale(type);
-    }
-}
-
-// Modifier retourMenu
-const fnRetourOriginale = retourMenu;
-retourMenu = function() {
-    document.getElementById('moduleDessin').style.display = 'none';
-    fnRetourOriginale();
-}
