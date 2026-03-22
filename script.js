@@ -89,6 +89,7 @@ function ouvrirModule(type) {
     document.getElementById('moduleChiffres').style.display = 'none';
     document.getElementById('moduleAlphabet').style.display = 'none';
     document.getElementById('moduleFormes').style.display = 'none';
+    document.getElementById('canvasParticules').style.display = 'block';
 
     if(type === 'chiffres') {
         document.getElementById('moduleChiffres').style.display = 'block';
@@ -100,6 +101,11 @@ function ouvrirModule(type) {
     } else if(type === 'formes') {
         document.getElementById('moduleFormes').style.display = 'block';
         parler("Le jardin des formes !");
+    }
+    if (type === 'dessin') {
+        document.getElementById('moduleDessin').style.display = 'block';
+        initialiserDessin();
+        parler("Dessine avec tes doigts magiques !");
     }
 }
 
