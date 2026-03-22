@@ -2,12 +2,11 @@
 // 1. CONFIGURATION DE LA VOIX ET DES ÉTOILES
 // ==========================================================================
 function parler(message) {
-    window.speechSynthesis.cancel(); // Arrête la voix précédente pour ne pas bégayer
-    const voix = new SpeechSynthesisUtterance(message);
-    voix.lang = 'fr-FR';
-    voix.pitch = 1.8; 
-    voix.rate = 0.9;  
-    window.speechSynthesis.speak(voix);
+    window.speechSynthesis.cancel();
+    const msg = new SpeechSynthesisUtterance(message);
+    msg.lang = 'fr-CA'; // Force l'accent québécois
+    msg.pitch = 1.2;    // Voix de fée un peu plus haute
+    window.speechSynthesis.speak(msg);
 }
 
 const canvas = document.getElementById('canvasParticules');
@@ -498,14 +497,16 @@ function afficherNouveauModele() {
     if (!afficheur) return;
 
     let caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
-    
     afficheur.innerText = caractere;
 
-    // Correction de la prononciation ici :
+    // On force une petite pause avec une virgule pour que la tablette
+    // ne fasse pas de liaison bizarre et respecte "la lettre"
     if (typeActuel === 'lettre') {
-        parler(`Essaie de tracer la lettre ${caractere.toLowerCase()} !`);
+        // En mettant le caractère en minuscule, certaines voix 
+        // sont moins "robotiques"
+        parler("Essaie de tracer la lettre, " + caractere.toLowerCase());
     } else {
-        parler(`Essaie de tracer le chiffre ${caractere} !`);
+        parler("Essaie de tracer le chiffre, " + caractere);
     }
 }
 
