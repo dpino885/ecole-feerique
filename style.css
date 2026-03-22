@@ -310,19 +310,22 @@ h1 {
 }
 
 .btn-jouer-alphabet {
-    font-size: 5rem !important;      /* ÉNORME texte/icône */
-    padding: 50px 100px !important;  /* ÉNORME zone de clic */
-    border-radius: 80px;             /* Bords très arrondis */
-    background: linear-gradient(135deg, #4caf50, #2e7d32);
+    font-size: 3.5rem !important;    /* Taille de l'icône ▶️ réduite */
+    padding: 30px 70px !important;   /* Zone de clic confortable mais pas envahissante */
+    border-radius: 60px;             /* Bords arrondis proportionnels */
+    background: linear-gradient(135deg, #af4c93, #7d2e70);
     color: white;
-    border: 8px solid #ffffff;
+    border: 6px solid #ffffff;
     cursor: pointer;
-    box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+    box-shadow: 0 12px 25px rgba(0,0,0,0.4);
     
-    /* Animation pour attirer l'oeil */
-    animation: battement 2s infinite ease-in-out;
+    /* On garde l'animation de battement car elle aide l'enfant */
+    animation: battement 2.5s infinite ease-in-out;
     transition: transform 0.2s;
     margin: 0 !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .btn-jouer-alphabet:active {
@@ -412,22 +415,103 @@ h1 {
 /* ==========================================================================
    7. MODULES FORMES
    ========================================================================== */
-.grille-formes {
+#jeuFormes {
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: center;
     justify-content: center;
-    gap: 25px;
+    height: 100vh;
+    gap: 30px;
 }
 
-.forme-btn {
-    width: 130px;
-    height: 130px;
-    font-size: 4.5rem;
-    border: none;
-    border-radius: 20px;
+#consigneForme {
+    font-size: 2.8rem;
+    margin-bottom: 10px;
+    color: #ffd700;
+    text-shadow: 2px 2px 10px rgba(0,0,0,0.5);
+    background: rgba(0,0,0,0.3);
+    padding: 15px 40px;
+    border-radius: 50px;
 }
-/* Couleurs formes */
-.carre { background: #42a5f5; }
-.cercle { background: #ff7043; border-radius: 50%; }
-.triangle { background: #66bb6a; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
 
+/* --- Le CONTENEUR (Pour bien espacer les géants) --- */
+#zoneOptionsFormes {
+    display: flex;
+    gap: 60px;                      /* Grand espace entre les boutons */
+    justify-content: center;
+    align-items: center;
+    flex-wrap: wrap;                /* Permet de passer à la ligne si besoin */
+    max-width: 95%;                 /* Prend presque toute la largeur de l'écran */
+    margin-top: 30px;
+    pointer-events: auto !important; /* Force l'autorisation du clic ici */
+}
+
+#moduleFormes {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9000; /* <--- On le met au-dessus de TOUT (Dessin, Alphabet, Étoiles) */
+    display: none; /* Géré par le JS */
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto !important; /* Force l'autorisation du clic */
+}
+
+
+
+/* --- Format Intermédiaire Équilibré --- */
+/* On augmente encore un peu la base pour tout le monde */
+/* --- Boutons Invisibles (Formes Flottantes) --- */
+.forme-option {
+    width: 270px !important;
+    height: 270px !important;
+    font-size: 200px !important;
+    
+    /* ON ENLÈVE TOUT LE VISUEL DU CARRÉ */
+    background: transparent !important; /* Plus de fond blanc */
+    border: none !important;             /* Plus de bordure blanche */
+    box-shadow: none !important;         /* Plus d'ombre portée */
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+    outline: none; /* Enlève le contour de sélection bleu sur tablette */
+}
+
+/* On garde l'effet de clic pour qu'elle sente qu'elle a touché la forme */
+.forme-option:active {
+    transform: scale(0.8); /* La forme rétrécit quand on appuie dessus */
+    opacity: 0.7;          /* Elle devient un peu transparente au toucher */
+}
+
+/* On s'assure que le texte (la forme) a une belle lueur pour bien ressortir sur la forêt */
+.forme-option span {
+    filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)); /* Halo magique blanc */
+    display: block;
+}
+
+/* Si le bouton contient un carré ou un cercle, on le booste à 240px */
+/* Note : Dans le JS, on s'assurera que ces symboles sont bien ceux-là */
+.forme-option[data-forme="Carré"] span,
+.forme-option[data-forme="Cercle"] span {
+    font-size: 250px !important; /* Format XXL pour remplir tout le carré blanc */
+    transform: translateY(-10px); /* Ajustement pour bien centrer visuellement */
+}
+
+
+
+/* --- Conteneur pour l'alignement horizontal --- */
+#zoneOptionsFormes {
+    display: flex;
+    gap: 30px;                      /* Espace suffisant pour ne pas cliquer à côté */
+    justify-content: center;        /* Centre les 3 formes au milieu de l'écran */
+    align-items: center;
+    flex-wrap: nowrap;              /* Force les 3 formes à rester sur la même ligne */
+    width: 95%;
+    margin-top: 20px;
+}

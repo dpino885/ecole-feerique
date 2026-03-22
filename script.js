@@ -109,15 +109,14 @@ function ouvrirModule(type) {
     } else if(type === 'formes') {
         document.getElementById('moduleFormes').style.display = 'block';
         parler("Le jardin des formes !");
+        ouvrirModuleFormes(); // <--- LA LIGNE MANQUANTE EST ICI !
     } else if(type === 'dessin') {
         document.getElementById('moduleDessin').style.display = 'block';
-        // Le dessin a son propre bouton retour dans sa barre d'outils
         document.getElementById('btnRetourGlobal').style.display = 'none';
         initialiserDessin();
         parler("Dessine avec tes doigts magiques !");
     }
 }
-
 function retourMenu() {
     document.getElementById('btnRetourGlobal').style.display = 'none';
     const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
@@ -282,10 +281,94 @@ function lettrePrecedente() {
 // 5. LOGIQUE DES FORMES
 // ==========================================================================
 
-function clicForme(nom) {
-    parler(`C'est un ${nom} !`);
-    for (let i = 0; i < 20; i++) {
-        particules.push(new Particule(window.innerWidth / 2, window.innerHeight / 2));
+// --- LOGIQUE CHERCHE ET TROUVE (FORMES) ---
+const listeFormes = [
+    { nom: 'Carré', symbole: '■', couleur: '#FF5722', genre: 'le' },
+    { nom: 'Cercle', symbole: '●', couleur: '#2196F3', genre: 'le' },
+    { nom: 'Triangle', symbole: '▲', couleur: '#4CAF50', genre: 'le' },
+    { nom: 'Étoile', symbole: '★', couleur: '#FFEB3B', genre: "l'" }, // Voyelle !
+    { nom: 'Cœur', symbole: '❤', couleur: '#E91E63', genre: 'le' }
+];
+
+let formeCible = null;
+
+// Cette fonction fait le pont entre le menu et le jeu
+function ouvrirModuleFormes() {
+    console.log("Démarrage du jeu des formes...");
+    // On s'assure que la zone est vide avant de commencer
+    const zone = document.getElementById('zoneOptionsFormes');
+    if (zone) {
+        zone.innerHTML = '';
+        nouveauDefiForme(); // On lance le tout premier défi
+    }
+}
+
+function nouveauDefiForme() {
+    // 1. Choisir la forme à trouver
+    formeCible = listeFormes[Math.floor(Math.random() * listeFormes.length)];
+    
+    // LOGIQUE DE GRAMMAIRE : "le" ou "l'" ?
+    // Si le genre se termine par une apostrophe (l'), on ne met pas d'espace
+    const article = formeCible.genre;
+    const espace = article.includes("'") ? "" : " ";
+    const phraseMagique = `Peux-tu trouver ${article}${espace}${formeCible.nom.toLowerCase()} ?`;
+
+    // Mise à jour visuelle et vocale
+    document.getElementById('consigneForme').innerText = phraseMagique;
+    parler(phraseMagique);
+
+    // 2. Mélanger les options (on en affiche 3)
+    let options = [...listeFormes].sort(() => 0.5 - Math.random()).slice(0, 3);
+    
+    // Si la cible n'est pas dans les 3, on l'ajoute de force
+    if (!options.find(o => o.nom === formeCible.nom)) {
+        options[0] = formeCible;
+    }
+    options.sort(() => 0.5 - Math.random()); 
+
+    // 3. Afficher les boutons
+    const zone = document.getElementById('zoneOptionsFormes');
+    zone.innerHTML = ''; 
+    
+    options.forEach(forme => {
+        const btn = document.createElement('button');
+        btn.className = 'forme-option';
+        
+        // On ajoute le "data-forme" pour que le CSS puisse grossir le Carré/Cercle
+        btn.setAttribute('data-forme', forme.nom);
+        
+        btn.innerHTML = `<span>${forme.symbole}</span>`;
+        btn.style.color = forme.couleur;
+        btn.onclick = () => verifierForme(forme.nom);
+        zone.appendChild(btn);
+    });
+}
+
+function verifierForme(nomClique) {
+    // Préparation de la grammaire (le carré / l'étoile)
+    const article = formeCible.genre;
+    const espace = article.includes("'") ? "" : " ";
+    const nomComplet = `${article}${espace}${formeCible.nom.toLowerCase()}`;
+
+    if (nomClique === formeCible.nom) {
+        // 1. On félicite d'abord
+        parler(`Bravo ! C'est bien ${nomComplet} !`);
+        
+        // 2. Explosion d'étoiles
+        for (let i = 0; i < 40; i++) {
+            const p = new Particule(window.innerWidth / 2, window.innerHeight / 2);
+            p.couleur = formeCible.couleur;
+            particules.push(p);
+        }
+
+        // 3. ON ATTEND PLUS LONGTEMPS (3 secondes au lieu de 2)
+        // Cela laisse le temps à la fée de finir "C'est bien le triangle !"
+        // avant que nouveauDefiForme() ne reprenne la parole.
+        setTimeout(nouveauDefiForme, 3000); 
+
+    } else {
+        // Si elle se trompe, on répète doucement
+        parler(`Oups ! Cherche encore ${nomComplet} !`);
     }
 }
 
