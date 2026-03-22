@@ -34,8 +34,11 @@ body {
     position: fixed;
     top: 0;
     left: 0;
-    z-index: 20; /* Étage 20 (devant le dessin) */
-    pointer-events: none; /* Laisse passer les clics vers le dessin */
+    width: 100vw;
+    height: 100vh;
+    z-index: 20; 
+    pointer-events: none; /* Laisse passer les clics */
+    background: transparent;
 }
 
 /* Le canvas du dessin est juste en dessous */
@@ -46,7 +49,7 @@ body {
     width: 100vw;
     height: 100vh;
     z-index: 10; /* Étage 10 */
-    background: #1a0033; /* On met le fond ici directement */
+    background: transparent; /* On met le fond ici directement */
     touch-action: none;
 }
 
