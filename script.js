@@ -177,3 +177,79 @@ function clicForme(nom) {
         particules.push(new Particule(x, y));
     }
 }
+
+// --- LOGIQUE DU DESSIN ---
+const canvasDessin = document.getElementById('canvasDessin');
+const ctxDessin = canvasDessin.getContext('2d');
+let enTrainDeDessiner = false;
+let couleurActuelle = 'yellow';
+
+function initialiserDessin() {
+    canvasDessin.width = window.innerWidth;
+    canvasDessin.height = window.innerHeight;
+    ctxDessin.lineJoin = 'round';
+    ctxDessin.lineCap = 'round';
+    ctxDessin.lineWidth = 8;
+}
+
+function changerCouleur(c) { couleurActuelle = c; }
+function effacerDessin() { ctxDessin.clearRect(0, 0, canvasDessin.width, canvasDessin.height); }
+
+// Fonctions de dessin
+function demarrerDessin(e) {
+    enTrainDeDessiner = true;
+    dessiner(e);
+}
+
+function arreterDessin() {
+    enTrainDeDessiner = false;
+    ctxDessin.beginPath();
+}
+
+function dessiner(e) {
+    if (!enTrainDeDessiner) return;
+    
+    let x = e.touches ? e.touches[0].clientX : e.clientX;
+    let y = e.touches ? e.touches[0].clientY : e.clientY;
+
+    ctxDessin.strokeStyle = couleurActuelle;
+    ctxDessin.shadowBlur = 10; // Effet néon/magique
+    ctxDessin.shadowColor = couleurActuelle;
+
+    ctxDessin.lineTo(x, y);
+    ctxDessin.stroke();
+    ctxDessin.beginPath();
+    ctxDessin.moveTo(x, y);
+    
+    // On ajoute aussi quelques étoiles du premier canvas pour le fun !
+    for(let i=0; i<2; i++) particules.push(new Particule(x, y));
+}
+
+// Événements
+canvasDessin.addEventListener('mousedown', demarrerDessin);
+canvasDessin.addEventListener('mousemove', dessiner);
+window.addEventListener('mouseup', arreterDessin);
+
+canvasDessin.addEventListener('touchstart', demarrerDessin);
+canvasDessin.addEventListener('touchmove', dessiner);
+window.addEventListener('touchend', arreterDessin);
+
+// Modifier ouvrirModule pour le dessin
+const fnOuvrirOriginale = ouvrirModule;
+ouvrirModule = function(type) {
+    if (type === 'dessin') {
+        document.getElementById('menuPrincipal').style.display = 'none';
+        document.getElementById('moduleDessin').style.display = 'block';
+        initialiserDessin();
+        parler("Dessine avec tes doigts magiques !");
+    } else {
+        fnOuvrirOriginale(type);
+    }
+}
+
+// Modifier retourMenu
+const fnRetourOriginale = retourMenu;
+retourMenu = function() {
+    document.getElementById('moduleDessin').style.display = 'none';
+    fnRetourOriginale();
+}

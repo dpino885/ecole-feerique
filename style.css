@@ -205,3 +205,46 @@ h1 {
 .triangle { background: #66bb6a; clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
 .etoile-bouton { background: #fbc02d; clip-path: polygon(50% 0%, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%); }
 .coeur { background: #ec407a; clip-path: polygon(50% 15%, 80% 0%, 100% 20%, 50% 100%, 0% 20%, 20% 0%); }
+
+/* --- Style du Module Dessin --- */
+#moduleDessin {
+    width: 100vw;
+    height: 100vh;
+    max-width: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    background: #1a0033;
+}
+
+#canvasDessin {
+    cursor: crosshair;
+    touch-action: none; /* Crucial pour le dessin sur tablette */
+}
+
+.barre-outils {
+    position: absolute;
+    top: 10px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 15px;
+    background: rgba(255, 255, 255, 0.2);
+    padding: 10px;
+    border-radius: 50px;
+    z-index: 30;
+}
+
+.barre-outils button {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 2px solid white;
+    cursor: pointer;
+}
+
+.btn-retour-dessin {
+    background: #ad1457 !important;
+    font-size: 1rem;
+    color: white;
+}

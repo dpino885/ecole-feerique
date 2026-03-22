@@ -17,6 +17,7 @@
             <button onclick="ouvrirModule('chiffres')">🔢 CHIFFRES</button>
             <button onclick="ouvrirModule('alphabet')">ABC ALPHABET</button>
             <button onclick="ouvrirModule('formes')">🟦 FORMES</button>
+            <button onclick="ouvrirModule('dessin')">🎨 DESSIN</button>
         </div>
 
         <div class="controles-ecran">
@@ -59,6 +60,18 @@
         <button class="forme-btn etoile-bouton" onclick="clicForme('Étoile')"><span>★</span></button>
         <button class="forme-btn coeur" onclick="clicForme('Cœur')"><span>❤</span></button>
     </div>
+</div>
+
+<div id="moduleDessin" class="module-ecran" style="display: none;">
+    <div class="barre-outils">
+        <button class="btn-retour-dessin" onclick="retourMenu()">⬅</button>
+        <button onclick="changerCouleur('yellow')" style="background: yellow;"></button>
+        <button onclick="changerCouleur('cyan')" style="background: cyan;"></button>
+        <button onclick="changerCouleur('magenta')" style="background: magenta;"></button>
+        <button onclick="changerCouleur('white')" style="background: white;"></button>
+        <button onclick="effacerDessin()" style="background: #333; color: white;">🗑️</button>
+    </div>
+    <canvas id="canvasDessin"></canvas>
 </div>
 
     <script src="script.js"></script> 
