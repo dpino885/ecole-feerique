@@ -29,12 +29,13 @@ body {
     background-color: #1a0033; /* Couleur de secours */
 }
 
-/* --- Le Canvas (Arrière-plan interactif) --- */
+/* Le canvas des étoiles doit être tout en haut */
 #canvasParticules {
-    position: absolute;
+    position: fixed; /* Changé de absolute à fixed pour qu'il suive l'écran */
     top: 0;
     left: 0;
-    z-index: 1; /* Derrière l'interface */
+    z-index: 100; /* Un chiffre très haut pour passer devant le dessin */
+    pointer-events: none; /* TRÈS IMPORTANT : permet de cliquer "au travers" pour dessiner */
 }
 
 /* --- L'Interface (Boutons et Titre) --- */
@@ -217,9 +218,13 @@ h1 {
     background: #1a0033;
 }
 
+/* Le canvas du dessin est juste en dessous */
 #canvasDessin {
-    cursor: crosshair;
-    touch-action: none; /* Crucial pour le dessin sur tablette */
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50; /* Plus bas que les particules */
+    touch-action: none;
 }
 
 .barre-outils {
