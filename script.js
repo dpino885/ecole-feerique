@@ -104,9 +104,13 @@ function ouvrirModule(type) {
 }
 
 function retourMenu() {
+    // On cache les modules
     document.getElementById('moduleChiffres').style.display = 'none';
     document.getElementById('moduleAlphabet').style.display = 'none';
     document.getElementById('moduleFormes').style.display = 'none';
+    document.getElementById('moduleDessin').style.display = 'none';
+    
+    // On réaffiche le menu
     document.getElementById('menuPrincipal').style.display = 'block';
 }
 

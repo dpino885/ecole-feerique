@@ -31,19 +31,22 @@ body {
 
 /* Le canvas des étoiles doit être tout en haut */
 #canvasParticules {
-    position: fixed; /* Changé de absolute à fixed pour qu'il suive l'écran */
+    position: fixed;
     top: 0;
     left: 0;
-    z-index: 100; /* Un chiffre très haut pour passer devant le dessin */
-    pointer-events: none; /* TRÈS IMPORTANT : permet de cliquer "au travers" pour dessiner */
+    z-index: 20; /* Étage 20 (devant le dessin) */
+    pointer-events: none; /* Laisse passer les clics vers le dessin */
 }
 
 /* Le canvas du dessin est juste en dessous */
 #canvasDessin {
-    position: absolute;
+    position: fixed;
     top: 0;
     left: 0;
-    z-index: 50; /* Plus bas que les particules */
+    width: 100vw;
+    height: 100vh;
+    z-index: 10; /* Étage 10 */
+    background: #1a0033; /* On met le fond ici directement */
     touch-action: none;
 }
 
@@ -230,24 +233,26 @@ h1 {
 
 
 .barre-outils {
-    position: absolute;
-    top: 10px;
+    position: fixed; /* On change absolute pour fixed */
+    top: 20px;
     left: 50%;
     transform: translateX(-50%);
     display: flex;
     gap: 15px;
-    background: rgba(255, 255, 255, 0.2);
-    padding: 10px;
+    background: rgba(255, 255, 255, 0.3);
+    padding: 15px;
     border-radius: 50px;
-    z-index: 200;
+    z-index: 100; /* Étage 100 (Tout en haut, rien ne le bloque) */
 }
 
 .barre-outils button {
-    width: 40px;
-    height: 40px;
+    width: 50px;
+    height: 50px;
     border-radius: 50%;
-    border: 2px solid white;
+    border: 3px solid white;
     cursor: pointer;
+    position: relative;
+    z-index: 101; /* Encore un peu plus haut pour être sûr */
 }
 
 .btn-retour-dessin {
