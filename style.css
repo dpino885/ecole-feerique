@@ -228,6 +228,7 @@ h1 {
 /* ==========================================================================
    5. DESSIN ET OUTILS
    ========================================================================== */
+/* Le conteneur principal devient une ligne (Row) */
 #moduleDessin {
     position: fixed;
     top: 0;
@@ -235,44 +236,97 @@ h1 {
     width: 100vw;
     height: 100vh;
     z-index: 100;
-    pointer-events: none;
+    display: none; /* Changé en 'flex' par le JS */
+    flex-direction: row; /* Dessin à gauche, Outils à droite */
+    background: #1a1a1a;
+    pointer-events: auto; /* Important pour cliquer sur les boutons */
+}
+
+/* Zone de dessin (85% de l'écran) */
+#conteneurCanevas {
+    position: relative;
+    flex: 1; /* Prend tout l'espace restant à gauche */
+    height: 100%;
+    overflow: hidden;
 }
 
 #canvasDessin {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 150; 
-    touch-action: none; 
-    pointer-events: auto !important;
+    width: 100%;
+    height: 100%;
+    touch-action: none;
     cursor: crosshair;
+    z-index: 2;
 }
 
-.barre-outils {
-    position: fixed;
-    top: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 1000; 
+/* LA BARRE LATERALE (C'est ici que ça se passe !) */
+.barre-laterale {
+    width: 120px; /* Largeur fixe pour le côté droit */
+    height: 100%;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    border-left: 2px solid rgba(255,255,255,0.2);
     display: flex;
-    gap: 10px;
-    background: rgba(255, 255, 255, 0.3);
-    padding: 15px;
-    border-radius: 40px;
-    backdrop-filter: blur(8px);
-    pointer-events: auto !important;
+    flex-direction: column;
+    align-items: center;
+    justify-content: space-around;
+    padding: 15px 5px;
+    z-index: 1000;
+    box-sizing: border-box;
 }
 
-.barre-outils button {
-    width: 45px;
-    height: 45px;
-    border-radius: 50%;
-    border: 2px solid white;
+/* Tes styles de boutons existants sont bons, on les garde propres */
+.btn-mode-lateral {
+    width: 90%;
+    padding: 12px 0;
+    border-radius: 15px;
+    border: 2px solid #fff;
+    background: #444;
+    color: white;
+    font-size: 14px;
+    font-weight: bold;
     cursor: pointer;
 }
 
+.pastille-laterale {
+    width: 45px;
+    height: 45px;
+    border-radius: 12px;
+    border: 2px solid white;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+
+.pastille-laterale:active {
+    transform: scale(0.8);
+}
+
+#modeleFantome {
+    position: absolute; 
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    pointer-events: none; 
+    
+    /* NOIR ABSOLU ET OPAQUE */
+    color: #000000 !important; 
+    opacity: 1 !important; 
+    
+    /* TRAIT FIN ET NET */
+    font-family: 'Arial', sans-serif; 
+    font-weight: 400; /* Pas de gras, juste la ligne */
+    font-size: 500px; 
+    
+    z-index: 1;
+    user-select: none;
+    line-height: 1;
+
+    /* LE SECRET : Un contour blanc pour "découper" la lettre du fond */
+    text-shadow: 
+        1px 1px 0 #fff, 
+        -1px -1px 0 #fff, 
+        1px -1px 0 #fff, 
+        -1px 1px 0 #fff;
+}
 /* ==========================================================================
    6. MODULE ALPHABET (MODE SÉQUENTIEL)
    ========================================================================== */
@@ -491,16 +545,40 @@ h1 {
 
 /* On s'assure que le texte (la forme) a une belle lueur pour bien ressortir sur la forêt */
 .forme-option span {
+    display: block;
+    
+    /* ON CRÉE LE CONTOUR NOIR ÉPAIS */
+    /* Cette technique simule un trait de crayon tout autour du symbole */
+    text-shadow: 
+        -1px -1px 0 #000, /* Haut Gauche */
+         1px -1px 0 #000, /* Haut Droite */
+        -1px  1px 0 #000, /* Bas Gauche */
+         1px  1px 0 #000, /* Bas Droite */
+         0px  1px 0 #000, /* Bas Milieu */
+         0px -1px 0 #000, /* Haut Milieu */
+         1px  0px 0 #000, /* Droite Milieu */
+        -1px  0px 0 #000, /* Gauche Milieu */
+        0 0 20px rgba(0,0,0,0.8); /* Petite ombre portée pour le relief */
+
+    /* Petit ajustement pour que le texte ne dépasse pas */
+    line-height: 1; 
+    padding: 10px;
     filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)); /* Halo magique blanc */
     display: block;
 }
 
 /* Si le bouton contient un carré ou un cercle, on le booste à 240px */
 /* Note : Dans le JS, on s'assurera que ces symboles sont bien ceux-là */
+/* On ajoute les nouveaux venus à la règle des formats XXL */
 .forme-option[data-forme="Carré"] span,
-.forme-option[data-forme="Cercle"] span {
-    font-size: 250px !important; /* Format XXL pour remplir tout le carré blanc */
-    transform: translateY(-10px); /* Ajustement pour bien centrer visuellement */
+.forme-option[data-forme="Cercle"] span,
+.forme-option[data-forme="Losange"] span,
+.forme-option[data-forme="Hexagone"] span,
+.forme-option[data-forme="Rectangle"] span,
+.forme-option[data-forme="Lune"] span,
+.forme-option[data-forme="Soleil"] span {
+    font-size: 250px !important;
+    transform: translateY(-10px);
 }
 
 
@@ -515,3 +593,4 @@ h1 {
     width: 95%;
     margin-top: 20px;
 }
+

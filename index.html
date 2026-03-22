@@ -61,20 +61,44 @@
         </div>
 </div>
 
-    <div id="moduleDessin" class="module-ecran" style="display:none;">
-        <canvas id="canvasDessin"></canvas>
-        <div class="barre-outils">
-            <button class="btn-retour-dessin" onclick="retourMenu()">🏠</button>
-            <button style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
-            <button style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
-            <button style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
-            <button style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
-            <button style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
-            <button style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
-            <button style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
-            <button onclick="effacerDessin()">🗑️</button>
+  <div id="moduleDessin" class="module-ecran" style="display: none; height: 100vh; width: 100vw; overflow: hidden; background: #1a1a1a;">
+    
+    <div id="conteneurCanevas" style="position: relative; width: 85%; height: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
+        <div id="modeleFantome" style="
+            position: absolute; 
+            pointer-events: none; 
+            font-size: 500px; 
+            color: rgba(255, 255, 255, 0.08); 
+            font-family: 'Arial Black', sans-serif; 
+            z-index: 1;">
+        </div>
+        <canvas id="canvasDessin" style="position: absolute; top: 0; left: 0; z-index: 2; width: 100%; height: 100%;"></canvas>
+    </div>
+
+    <div class="barre-laterale" style="width: 15%; height: 100%; background: #2c2c2c; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 10px; border-left: 3px solid #444; box-sizing: border-box; z-index: 10;">
+        
+        <button class="btn-outil-special" onclick="retourMenu()" style="background: #444; font-size: 30px;">🏠</button>
+
+        <hr style="width: 80%; border: 1px solid #555;">
+
+        <button class="btn-mode-lateral" onclick="preparerTracer('lettre')">ABC</button>
+        <button class="btn-mode-lateral" onclick="preparerTracer('chiffre')">123</button>
+        <button class="btn-mode-lateral" onclick="masquerTracer()">🎨</button>
+
+        <hr style="width: 80%; border: 1px solid #555;">
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <button class="pastille-laterale" style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
+            <button class="pastille-laterale" style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
+            <button class="pastille-laterale" style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
+            <button class="pastille-laterale" style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
+            <button class="pastille-laterale" style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
+            <button class="pastille-laterale" style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
+            <button class="pastille-laterale" style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
+            <button class="pastille-laterale" style="background: #555; font-size: 20px;" onclick="effacerDessin()">🗑️</button>
         </div>
     </div>
+</div>
 
     <script src="script.js"></script> 
 </body>

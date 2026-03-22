@@ -110,10 +110,20 @@ function ouvrirModule(type) {
         document.getElementById('moduleFormes').style.display = 'block';
         parler("Le jardin des formes !");
         ouvrirModuleFormes(); // <--- LA LIGNE MANQUANTE EST ICI !
-    } else if(type === 'dessin') {
-        document.getElementById('moduleDessin').style.display = 'block';
+ } else if(type === 'dessin') {
+        // ON CHANGE 'block' par 'flex' ici :
+        document.getElementById('moduleDessin').style.display = 'flex';
+        
         document.getElementById('btnRetourGlobal').style.display = 'none';
+        
+        // On s'assure que le canvas prend la bonne taille tout de suite
         initialiserDessin();
+        
+        // Si tu as ajouté la fonction pour les lettres/chiffres :
+        if (typeof masquerTracer === "function") {
+            masquerTracer(); // On commence en mode dessin libre
+        }
+
         parler("Dessine avec tes doigts magiques !");
     }
 }
@@ -286,8 +296,19 @@ const listeFormes = [
     { nom: 'Carré', symbole: '■', couleur: '#FF5722', genre: 'le' },
     { nom: 'Cercle', symbole: '●', couleur: '#2196F3', genre: 'le' },
     { nom: 'Triangle', symbole: '▲', couleur: '#4CAF50', genre: 'le' },
-    { nom: 'Étoile', symbole: '★', couleur: '#FFEB3B', genre: "l'" }, // Voyelle !
-    { nom: 'Cœur', symbole: '❤', couleur: '#E91E63', genre: 'le' }
+    { nom: 'Étoile', symbole: '★', couleur: '#FFEB3B', genre: "l'" },
+    { nom: 'Cœur', symbole: '❤', couleur: '#E91E63', genre: 'le' },
+    { nom: 'Losange', symbole: '◆', couleur: '#9C27B0', genre: 'le' },
+    { nom: 'Rectangle', symbole: '▮', couleur: '#795548', genre: 'le' },
+    { nom: 'Hexagone', symbole: '⬢', couleur: '#00BCD4', genre: "l'" },
+    { nom: 'Nuage', symbole: '☁', couleur: '#B0BEC5', genre: 'le' },
+    // --- NOUVEAUX AJOUTS ---
+    { nom: 'Lune', symbole: '🌙', couleur: '#FFD700', genre: 'la' },
+    { nom: 'Soleil', symbole: '☀️', couleur: '#FFA500', genre: 'le' },
+    { nom: 'Goutte', symbole: '💧', couleur: '#00FFFF', genre: 'la' },
+    { nom: 'Éclair', symbole: '⚡', couleur: '#FFFF00', genre: "l'" },
+    { nom: 'Trèfle', symbole: '☘️', couleur: '#2E7D32', genre: 'le' },
+    { nom: 'Diamant', symbole: '💎', couleur: '#81D4FA', genre: 'le' }
 ];
 
 let formeCible = null;
@@ -318,7 +339,7 @@ function nouveauDefiForme() {
     parler(phraseMagique);
 
     // 2. Mélanger les options (on en affiche 3)
-    let options = [...listeFormes].sort(() => 0.5 - Math.random()).slice(0, 3);
+    let options = [...listeFormes].sort(() => 0.5 - Math.random()).slice(0, 4);
     
     // Si la cible n'est pas dans les 3, on l'ajoute de force
     if (!options.find(o => o.nom === formeCible.nom)) {
@@ -344,56 +365,93 @@ function nouveauDefiForme() {
     });
 }
 
+let victoiresFormes = 0; // On commence à zéro
+
 function verifierForme(nomClique) {
-    // Préparation de la grammaire (le carré / l'étoile)
     const article = formeCible.genre;
     const espace = article.includes("'") ? "" : " ";
     const nomComplet = `${article}${espace}${formeCible.nom.toLowerCase()}`;
 
     if (nomClique === formeCible.nom) {
-        // 1. On félicite d'abord
+        victoiresFormes++; // +1 point !
+        
         parler(`Bravo ! C'est bien ${nomComplet} !`);
         
-        // 2. Explosion d'étoiles
+        // Explosion d'étoiles
         for (let i = 0; i < 40; i++) {
             const p = new Particule(window.innerWidth / 2, window.innerHeight / 2);
             p.couleur = formeCible.couleur;
             particules.push(p);
         }
 
-        // 3. ON ATTEND PLUS LONGTEMPS (3 secondes au lieu de 2)
-        // Cela laisse le temps à la fée de finir "C'est bien le triangle !"
-        // avant que nouveauDefiForme() ne reprenne la parole.
-        setTimeout(nouveauDefiForme, 3000); 
+        // --- SYSTÈME DE RÉCOMPENSE ---
+        if (victoiresFormes >= 5) {
+            victoiresFormes = 0; // On remet à zéro pour la prochaine fois
+            setTimeout(apparaitreFeeGeante, 1500); 
+        } else {
+            setTimeout(nouveauDefiForme, 4000);
+        }
 
     } else {
-        // Si elle se trompe, on répète doucement
         parler(`Oups ! Cherche encore ${nomComplet} !`);
     }
+}
+
+function apparaitreFeeGeante() {
+    parler("Félicitations ! Tu es une championne des formes !");
+    
+    // On crée une fée géante qui vole au milieu
+    const fee = document.createElement('div');
+    fee.innerHTML = "🧚‍♀️";
+    fee.style.position = 'fixed';
+    fee.style.left = '50%';
+    fee.style.top = '50%';
+    fee.style.transform = 'translate(-50%, -50%) scale(0)';
+    fee.style.fontSize = '250px';
+    fee.style.zIndex = '10000';
+    fee.style.transition = 'transform 1s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
+    fee.style.pointerEvents = 'none';
+    
+    document.body.appendChild(fee);
+
+    // Animation d'apparition (Pop!)
+    setTimeout(() => {
+        fee.style.transform = 'translate(-50%, -50%) scale(1.5)';
+    }, 100);
+
+    // Elle s'en va après 3 secondes et relance le jeu
+    setTimeout(() => {
+        fee.style.transform = 'translate(-50%, -50%) scale(0)';
+        setTimeout(() => {
+            fee.remove();
+            nouveauDefiForme();
+        }, 1000);
+    }, 3500);
 }
 
 // ==========================================================================
 // 6. LOGIQUE DU DESSIN
 // ==========================================================================
 const canvasDessin = document.getElementById('canvasDessin');
-const ctxDessin = canvasDessin.getContext('2d');
+const ctxDessin = canvasDessin.getContext('2d', { willReadFrequently: true }); // Optimisé pour verifierTracerFini
 let enTrainDeDessiner = false;
 let couleurActuelle = 'yellow';
+let estEnTrainDeCelebrer = false; 
+
+const modelesLettres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+const modelesChiffres = "0123456789".split("");
+let indexModeleActuel = 0; 
+let typeActuel = 'libre';
 
 function initialiserDessin() {
-    const canvasDessin = document.getElementById('canvasDessin');
-    const ctxDessin = canvasDessin.getContext('2d');
+    const conteneur = document.getElementById('conteneurCanevas');
+    canvasDessin.width = conteneur.clientWidth;
+    canvasDessin.height = conteneur.clientHeight;
     
-    // On donne la taille réelle de l'écran au canvas
-    canvasDessin.width = window.innerWidth;
-    canvasDessin.height = window.innerHeight;
-    
-    // Paramètres du pinceau magique
     ctxDessin.lineJoin = 'round';
     ctxDessin.lineCap = 'round';
-    ctxDessin.lineWidth = 12; // Un peu plus gros pour ta fille
+    ctxDessin.lineWidth = 15; // Un peu plus épais pour faciliter la détection
     
-    // On s'assure que le mode dessin est bien visible
     document.getElementById('moduleDessin').style.zIndex = "500";
 }
 
@@ -408,25 +466,66 @@ function changerCouleur(c) {
     parler(noms[c] || "Couleur magique !");
 }
 
-function effacerDessin() { ctxDessin.clearRect(0, 0, canvasDessin.width, canvasDessin.height); }
+// VERSION UNIQUE ET CORRIGÉE
+function effacerDessin(changerDeLettre = true) { 
+    ctxDessin.clearRect(0, 0, canvasDessin.width, canvasDessin.height); 
+    
+    if (typeActuel !== 'libre' && changerDeLettre) {
+        if (typeActuel === 'lettre') {
+            indexModeleActuel = (indexModeleActuel + 1) % modelesLettres.length;
+        } else {
+            indexModeleActuel = (indexModeleActuel + 1) % modelesChiffres.length;
+        }
+        afficherNouveauModele();
+    }
+}
 
+function preparerTracer(type) {
+    typeActuel = type;
+    indexModeleActuel = 0; // On commence bien au début (A ou 0)
+    effacerDessin(false);  // On efface SANS changer la lettre pour rester sur le A
+    afficherNouveauModele();
+}
+
+function masquerTracer() {
+    typeActuel = 'libre';
+    document.getElementById('modeleFantome').innerText = "";
+    parler("Dessin libre ! Amuse-toi !");
+}
+
+function afficherNouveauModele() {
+    const afficheur = document.getElementById('modeleFantome');
+    if (!afficheur) return;
+
+    let caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
+    
+    afficheur.innerText = caractere;
+    parler(`Essaie de tracer le ${typeActuel} ${caractere.toLowerCase()} !`);
+}
+
+// GESTION DU TRACÉ
 function demarrerDessin(e) {
+    if (estEnTrainDeCelebrer) return;
     enTrainDeDessiner = true;
     dessiner(e);
 }
 
 function arreterDessin() {
+    if (enTrainDeDessiner && typeActuel !== 'libre') {
+        verifierTracerFini();
+    }
     enTrainDeDessiner = false;
     ctxDessin.beginPath();
 }
 
 function dessiner(e) {
     if (!enTrainDeDessiner) return;
-    let x = e.touches ? e.touches[0].clientX : e.clientX;
-    let y = e.touches ? e.touches[0].clientY : e.clientY;
+    const rect = canvasDessin.getBoundingClientRect();
+    let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    let y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
 
     ctxDessin.strokeStyle = couleurActuelle;
-    ctxDessin.shadowBlur = 10;
+    ctxDessin.shadowBlur = 5;
     ctxDessin.shadowColor = couleurActuelle;
 
     ctxDessin.lineTo(x, y);
@@ -435,15 +534,49 @@ function dessiner(e) {
     ctxDessin.moveTo(x, y);
     
     for(let i = 0; i < 2; i++) {
-        let p = new Particule(x, y);
+        let p = new Particule(x + rect.left, y + rect.top);
         p.couleur = couleurActuelle;
         particules.push(p);
     }
 }
 
+function verifierTracerFini() {
+    const imageData = ctxDessin.getImageData(0, 0, canvasDessin.width, canvasDessin.height);
+    const pixels = imageData.data;
+    let pixelsColories = 0;
+
+    for (let i = 3; i < pixels.length; i += 40) { // Scan plus rapide
+        if (pixels[i] > 50) pixelsColories++;
+    }
+
+    // Seuil de réussite
+    if (pixelsColories > 1000) { 
+        celebrerFinTracer();
+    }
+}
+
+function celebrerFinTracer() {
+    if (estEnTrainDeCelebrer) return;
+    estEnTrainDeCelebrer = true;
+    
+    parler("C'est magnifique ! Tu as très bien tracé !");
+    
+    for (let i = 0; i < 100; i++) {
+        const p = new Particule(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
+        p.couleur = `hsl(${Math.random() * 360}, 100%, 50%)`;
+        particules.push(p);
+    }
+
+    setTimeout(() => {
+        effacerDessin(true); 
+        estEnTrainDeCelebrer = false;
+    }, 5000); 
+}
+
+// ÉCOUTEURS D'ÉVÉNEMENTS
 canvasDessin.addEventListener('mousedown', demarrerDessin);
 canvasDessin.addEventListener('mousemove', dessiner);
 window.addEventListener('mouseup', arreterDessin);
-canvasDessin.addEventListener('touchstart', demarrerDessin);
-canvasDessin.addEventListener('touchmove', dessiner);
+canvasDessin.addEventListener('touchstart', (e) => { e.preventDefault(); demarrerDessin(e); }, {passive: false});
+canvasDessin.addEventListener('touchmove', (e) => { e.preventDefault(); dessiner(e); }, {passive: false});
 window.addEventListener('touchend', arreterDessin);
