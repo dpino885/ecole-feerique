@@ -38,6 +38,15 @@ body {
     pointer-events: none; /* TRÈS IMPORTANT : permet de cliquer "au travers" pour dessiner */
 }
 
+/* Le canvas du dessin est juste en dessous */
+#canvasDessin {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 50; /* Plus bas que les particules */
+    touch-action: none;
+}
+
 /* --- L'Interface (Boutons et Titre) --- */
 .interface {
     position: relative;
@@ -218,14 +227,7 @@ h1 {
     background: #1a0033;
 }
 
-/* Le canvas du dessin est juste en dessous */
-#canvasDessin {
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: 50; /* Plus bas que les particules */
-    touch-action: none;
-}
+
 
 .barre-outils {
     position: absolute;
@@ -237,7 +239,7 @@ h1 {
     background: rgba(255, 255, 255, 0.2);
     padding: 10px;
     border-radius: 50px;
-    z-index: 30;
+    z-index: 200;
 }
 
 .barre-outils button {
