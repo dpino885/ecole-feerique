@@ -223,6 +223,7 @@ h1 {
 .coeur { background: #ec407a; clip-path: polygon(50% 15%, 80% 0%, 100% 20%, 50% 100%, 0% 20%, 20% 0%); }
 
 /* --- Style du Module Dessin --- */
+/* --- Style du Module Dessin --- */
 #moduleDessin {
     width: 100vw;
     height: 100vh;
@@ -230,7 +231,9 @@ h1 {
     position: fixed;
     top: 0;
     left: 0;
-    background: #1a0033;
+    /* ON ENLÈVE LE BACKGROUND ICI */
+    background: rgb(62, 4, 62); 
+    z-index: 5; /* On le met très bas */
 }
 
 
