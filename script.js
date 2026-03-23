@@ -322,28 +322,26 @@ function ouvrirModuleFormes() {
         nouveauDefiForme(); // On lance le tout premier défi
     }
 }
-
 function nouveauDefiForme() {
     // 1. Choisir la forme à trouver
     formeCible = listeFormes[Math.floor(Math.random() * listeFormes.length)];
     
-    // LOGIQUE DE GRAMMAIRE : "le" ou "l'" ?
-    // Si le genre se termine par une apostrophe (l'), on ne met pas d'espace
+    // LOGIQUE DE GRAMMAIRE CORRIGÉE
     const article = formeCible.genre;
-    const espace = article.includes("'") ? "" : " ";
+    const espace = article.endsWith("'") ? "" : " ";
     const phraseMagique = `Peux-tu trouver ${article}${espace}${formeCible.nom.toLowerCase()} ?`;
 
-    // Mise à jour visuelle et vocale
     document.getElementById('consigneForme').innerText = phraseMagique;
     parler(phraseMagique);
 
-    // 2. Mélanger les options (on en affiche 3)
-    let options = [...listeFormes].sort(() => 0.5 - Math.random()).slice(0, 4);
+    // 2. Mélanger les options - On en garde 3 pour que ça respire sur la tablette
+    let options = [...listeFormes].sort(() => 0.5 - Math.random()).slice(0, 3);
     
-    // Si la cible n'est pas dans les 3, on l'ajoute de force
+    // Si la cible n'est pas dans les 3, on remplace la première par la cible
     if (!options.find(o => o.nom === formeCible.nom)) {
         options[0] = formeCible;
     }
+    // On remélange pour que la cible ne soit pas toujours à gauche
     options.sort(() => 0.5 - Math.random()); 
 
     // 3. Afficher les boutons
@@ -354,11 +352,13 @@ function nouveauDefiForme() {
         const btn = document.createElement('button');
         btn.className = 'forme-option';
         
-        // On ajoute le "data-forme" pour que le CSS puisse grossir le Carré/Cercle
+        // C'est ici que la magie opère pour le CSS (data-forme="Lune")
         btn.setAttribute('data-forme', forme.nom);
         
+        // On utilise un span pour appliquer les effets de texte du CSS
         btn.innerHTML = `<span>${forme.symbole}</span>`;
         btn.style.color = forme.couleur;
+        
         btn.onclick = () => verifierForme(forme.nom);
         zone.appendChild(btn);
     });
@@ -576,13 +576,13 @@ function verifierTracerFini() {
     const caractereActuel = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
     
     // Seuil par défaut pour les lettres larges (A, B, M, 8, etc.)
-    let seuilReussite = 3000; 
+    let seuilReussite = 2100; 
 
     // Si c'est un caractère mince, on baisse le seuil de moitié
-    const caracteresMinces = ["I", "i", "1", "7", "L", "l", "J", "j", "T", "t"];
+    const caracteresMinces = ["I", "i", "1", "7", "L", "l", "J", "j", "T", "t", "f", "F"]
     
     if (caracteresMinces.includes(caractereActuel)) {
-        seuilReussite = 1000; // Beaucoup plus facile pour les traits fins
+        seuilReussite = 800; // Beaucoup plus facile pour les traits fins
     }
 
     if (pixelsColories > seuilReussite) { 

@@ -586,6 +586,9 @@ h1 {
     font-size: 250px !important;
     transform: translateY(-10px);
 }
+.forme-option[data-forme="Lune"] span {
+    font-size: 180px !important; /* On descend de 250px à 180px */
+    transform: translateY(0);    /* On remet l'alignement normal */}
 
 
 
