@@ -5,18 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Forêt Enchantée</title>
     <link rel="stylesheet" href="style.css">
+   <link href="https://fonts.googleapis.com/css2?family=Mountains+of+Christmas:wght@700&display=swap" rel="stylesheet">
 </head>
 <body>
     <canvas id="canvasParticules"></canvas>
 
     <div class="interface" id="menuPrincipal">
-        <h1>Forêt Enchantée</h1>
+        <h1>L'École des Étoiles</h1>
+        
         <div class="menu-boutons">
-            <button onclick="ouvrirModule('chiffres')">🔢 CHIFFRES</button>
-            <button onclick="ouvrirModule('alphabet')">ABC ALPHABET</button>
-            <button onclick="ouvrirModule('formes')">🟦 FORMES</button>
-            <button onclick="ouvrirModule('dessin')">🎨 DESSIN</button>
+            <button onclick="ouvrirModule('chiffres')" class="btn-menu">
+                <img src="images/bouton-chiffres.png" alt="Chiffres" draggable="false">
+            </button>
+
+            <button onclick="ouvrirModule('alphabet')" class="btn-menu">
+                <img src="images/bouton-alphabet.png" alt="Alphabet" draggable="false">
+            </button>
+
+            <button onclick="ouvrirModule('formes')" class="btn-menu">
+                <img src="images/bouton-formes.png" alt="Formes" draggable="false">
+            </button>
+
+            <button onclick="ouvrirModule('dessin')" class="btn-menu">
+                <img src="images/bouton-dessin.png" alt="Dessin" draggable="false">
+            </button>
         </div>
+
         <div class="controles-ecran">
             <button id="btnPleinEcran" onclick="basculerPleinEcran()">Mode Plein Écran</button>
         </div>
@@ -32,73 +46,56 @@
         <div id="areneFées"></div>
     </div>
 
-<div id="moduleAlphabet" class="module-ecran" style="display: none;">
-   <div id="ecranDepartAlphabet">
-    <button class="btn-jouer-alphabet" onclick="demarrerAlphabet()">▶️ JOUER</button>
-    <p>Clique pour commencer l'alphabet !</p>
-</div>
+    <div id="moduleAlphabet" class="module-ecran" style="display: none;">
+        <div id="ecranDepartAlphabet">
+            <button class="btn-jouer-alphabet" onclick="demarrerAlphabet()">▶️ JOUER</button>
+            <p>Clique pour commencer l'alphabet !</p>
+        </div>
 
-    <div id="zoneLettreMagique" style="display: none;">
-        <div class="navigation-alphabet">
-            <button class="nav-btn" onclick="lettrePrecedente()">⬅️</button>
-            <div class="conteneur-lettre-centrale">
-                <button id="grandeLettre" onclick="lettreSuivante()"></button>
-                <p id="motExemple"></p>
+        <div id="zoneLettreMagique" style="display: none;">
+            <div class="navigation-alphabet">
+                <button class="nav-btn" onclick="lettrePrecedente()">⬅️</button>
+                <div class="conteneur-lettre-centrale">
+                    <button id="grandeLettre" onclick="lettreSuivante()"></button>
+                    <p id="motExemple"></p>
+                </div>
+                <button class="nav-btn" onclick="lettreSuivante()">➡️</button>
             </div>
-            <button class="nav-btn" onclick="lettreSuivante()">➡️</button>
         </div>
     </div>
-</div>
 
+    <div id="moduleFormes" class="module-ecran" style="display: none;">
+        <div id="jeuFormes">
+            <h2 id="consigneForme">Chargement du défi...</h2>
+            <div id="zoneOptionsFormes"></div>
+        </div>
+    </div>
 
-  <div id="moduleFormes" class="module-ecran" style="display: none;">
-    <div id="jeuFormes">
-        <h2 id="consigneForme">Chargement du défi...</h2>
-        
-        <div id="zoneOptionsFormes">
+    <div id="moduleDessin" class="module-ecran" style="display: none; height: 100vh; width: 100vw; overflow: hidden; background: #1a1a1a;">
+        <div id="conteneurCanevas" style="position: relative; width: 85%; height: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
+            <div id="modeleFantome" style="position: absolute; pointer-events: none; font-size: 500px; color: rgba(255, 255, 255, 0.08); font-family: 'Arial Black', sans-serif; z-index: 1;"></div>
+            <canvas id="canvasDessin" style="position: absolute; top: 0; left: 0; z-index: 2; width: 100%; height: 100%;"></canvas>
+        </div>
+
+        <div class="barre-laterale" style="width: 15%; height: 100%; background: #2c2c2c; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 10px; border-left: 3px solid #444; box-sizing: border-box; z-index: 10;">
+            <button class="btn-outil-special" onclick="retourMenu()" style="background: #444; font-size: 30px;">🏠</button>
+            <hr style="width: 80%; border: 1px solid #555;">
+            <button class="btn-mode-lateral" onclick="preparerTracer('lettre')">ABC</button>
+            <button class="btn-mode-lateral" onclick="preparerTracer('chiffre')">123</button>
+            <button class="btn-mode-lateral" onclick="masquerTracer()">🎨</button>
+            <hr style="width: 80%; border: 1px solid #555;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="pastille-laterale" style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
+                <button class="pastille-laterale" style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
+                <button class="pastille-laterale" style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
+                <button class="pastille-laterale" style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
+                <button class="pastille-laterale" style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
+                <button class="pastille-laterale" style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
+                <button class="pastille-laterale" style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
+                <button class="pastille-laterale" style="background: #555; font-size: 20px;" onclick="effacerDessin()">🗑️</button>
             </div>
-
-        </div>
-</div>
-
-  <div id="moduleDessin" class="module-ecran" style="display: none; height: 100vh; width: 100vw; overflow: hidden; background: #1a1a1a;">
-    
-    <div id="conteneurCanevas" style="position: relative; width: 85%; height: 100%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">
-        <div id="modeleFantome" style="
-            position: absolute; 
-            pointer-events: none; 
-            font-size: 500px; 
-            color: rgba(255, 255, 255, 0.08); 
-            font-family: 'Arial Black', sans-serif; 
-            z-index: 1;">
-        </div>
-        <canvas id="canvasDessin" style="position: absolute; top: 0; left: 0; z-index: 2; width: 100%; height: 100%;"></canvas>
-    </div>
-
-    <div class="barre-laterale" style="width: 15%; height: 100%; background: #2c2c2c; display: flex; flex-direction: column; align-items: center; justify-content: space-around; padding: 10px; border-left: 3px solid #444; box-sizing: border-box; z-index: 10;">
-        
-        <button class="btn-outil-special" onclick="retourMenu()" style="background: #444; font-size: 30px;">🏠</button>
-
-        <hr style="width: 80%; border: 1px solid #555;">
-
-        <button class="btn-mode-lateral" onclick="preparerTracer('lettre')">ABC</button>
-        <button class="btn-mode-lateral" onclick="preparerTracer('chiffre')">123</button>
-        <button class="btn-mode-lateral" onclick="masquerTracer()">🎨</button>
-
-        <hr style="width: 80%; border: 1px solid #555;">
-
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-            <button class="pastille-laterale" style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
-            <button class="pastille-laterale" style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
-            <button class="pastille-laterale" style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
-            <button class="pastille-laterale" style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
-            <button class="pastille-laterale" style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
-            <button class="pastille-laterale" style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
-            <button class="pastille-laterale" style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
-            <button class="pastille-laterale" style="background: #555; font-size: 20px;" onclick="effacerDessin()">🗑️</button>
         </div>
     </div>
-</div>
 
     <script src="script.js"></script> 
 </body>

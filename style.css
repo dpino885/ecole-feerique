@@ -25,6 +25,32 @@ body {
     background: transparent !important;
 }
 
+.btn-image-menu {
+    /* ... tes autres styles ... */
+    width: 250px; /* <--- ON AUGMENTE LA TAILLE DU BOUTON ICI (ex: 250px) */
+    height: auto;
+    background: transparent;
+    border: none;
+    padding: 0;
+    cursor: pointer;
+    display: flex; /* Pour bien centrer l'image */
+    justify-content: center;
+    align-items: center;
+}
+
+.btn-image-menu img {
+    width: 100%; /* L'image prend toute la largeur du bouton */
+    height: auto;
+    
+    /* --- ASTUCE POUR LE FOND NON TRANSPARENT --- */
+    /* Si le fond de ton image est BLANC PUR, cette ligne va le rendre transparent
+       en le mélangeant avec le fond de la forêt. */
+    mix-blend-mode: multiply; 
+
+    /* Optionnel : Ajoute un petit contour pour que l'image ressorte */
+    filter: drop-shadow(0 0 10px rgba(255,255,255,0.5)); 
+}
+
 
 
 /* ==========================================================================
@@ -141,20 +167,8 @@ body {
 /* ==========================================================================
    4. MENU ET BOUTONS
    ========================================================================== */
-/* --- LE TITRE (FORÊT ENCHANTÉE) --- */
-h1 {
-    width: 100%;
-    text-align: center;
-    color: #e1bee7;
-    font-size: 3.5rem;
-    text-shadow: 0 0 20px rgba(156, 39, 176, 0.9);
-    margin: 0;
-    position: absolute;    /* On le détache du flux pour qu'il ne pousse pas les boutons */
-    top: 10%;              /* Il restera à 10% du haut de l'écran */
-    pointer-events: none;
-}
 
-/* --- L'INTERFACE (CONTENEUR GLOBAL DU MENU) --- */
+/* --- L'INTERFACE (FIX POUR REMONTER LE TOUT) --- */
 .interface {
     position: fixed;
     top: 0;
@@ -164,65 +178,143 @@ h1 {
     z-index: 1000;
     display: flex;
     flex-direction: column;
-    align-items: center;    /* Centre tout horizontalement */
-    justify-content: center; /* CENTRE TOUT VERTICALEMENT */
+    align-items: center;
+    
+    /* ON CHANGE ICI : On aligne vers le haut */
+    justify-content: flex-start; 
+    
     pointer-events: none;
-    padding: 0;             /* On enlève les paddings qui poussent le menu */
+    padding-top: 40px; /* Distance du titre par rapport au haut de l'écran */
 }
 
-/* --- LA GRILLE DE BOUTONS (CENTRÉE) --- */
+/* Réactivation des clics */
+.interface h1, 
+.menu-boutons, 
+.controles-ecran {
+    pointer-events: auto;
+}
+
+/* --- STYLE COMMUN DES BULLES (TITRE) --- */
+h1 {
+    font-family: 'Mountains of Christmas', cursive;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    color: #FFD700 !important;
+    border: 3px solid rgba(255, 215, 0, 0.5) !important;
+    border-radius: 50px;
+    padding: 15px 35px;
+    text-shadow: 2px 2px 0px #000;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.6);
+    backdrop-filter: blur(5px);
+    font-size: 2.6rem;
+    margin: 0;
+    letter-spacing: 2px;
+}
+
+/* --- LA GRILLE DE BOUTONS (LE FIX POUR LE CENTRAGE) --- */
 .menu-boutons {
     display: grid;
-    grid-template-columns: 1fr 1fr; /* 2 colonnes */
-    gap: 30px;
-    padding: 20px;
+    /* On force 2 colonnes égales de 300px pour bien centrer */
+    grid-template-columns: repeat(2, 300px); 
+    gap: 20px;
+    justify-content: center; /* Centre la grille dans l'écran */
+    align-content: center;   /* Centre les items verticalement */
+}
+
+
+/* --- LA GRILLE DE BOUTONS --- */
+.menu-boutons {
+    display: grid;
+    /* On resserre les colonnes pour que les zones ne se touchent pas */
+    grid-template-columns: repeat(2, 250px); 
+    gap: 15px; /* On réduit l'espace vide entre les blocs */
+    justify-content: center;
     pointer-events: auto;
-    /* On ne met pas de flex-grow ici pour que ça reste compact au centre */
+    
+    /* ON REMONTE LE TOUT */
+    margin-top: 10px; /* Moins d'espace sous le titre pour tout remonter */
 }
 
+/* --- LA GRILLE DE BOUTONS --- */
+.menu-boutons {
+    display: grid;
+    /* On écarte les centres : on passe de 250px à 320px par colonne */
+    grid-template-columns: repeat(2, 600px); 
+    
+   /* --- LES RÉGLAGES DE HAUTEUR ICI --- */
+    row-gap: 80px;      /* Augmente l'espace entre le haut et le bas */
+    column-gap: 40px;   /* Garde l'espace entre gauche et droite */
+    
+    justify-content: center;
+    pointer-events: auto;
+    
+    /* On garde le tout bien haut */
+    margin-top: 10px; 
+}
+
+/* LE BOUTON : Zone de clic ultra-précise (Tes valeurs sont parfaites) */
 .menu-boutons button {
-    padding: 30px;
-    font-size: 1.5rem;
-    border: 3px solid #e1bee7;
-    border-radius: 50px;
-    background: linear-gradient(135deg, #9c27b0, #7b1fa2);
-    color: white;
-    box-shadow: 0 10px 20px rgba(0,0,0,0.5);
+    background: transparent !important;
+    border: none !important;
+    padding: 0;
     cursor: pointer;
+    outline: none;
+    transition: transform 0.2s ease;
+
+    /* Tes modifications qui fonctionnent bien : */
+    width: 130px;  
+    height: 120px; 
+    
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none; 
+    
+    /* On s'assure que le bouton reste bien au centre de sa colonne de 320px */
+    margin: 0 auto; 
 }
 
-.menu-boutons button:nth-child(even) { transform: translateY(20px); }
+/* L'image à l'intérieur (DÉBORDE DU BOUTON) */
+.menu-boutons button img {
+    width: 280px; 
+    min-width: 280px;
+    height: auto;
+    display: block;
+    pointer-events: none; 
+    flex-shrink: 0;
 
+    filter: drop-shadow(3px 3px 0px #000) 
+            drop-shadow(-3px -3px 0px #000) 
+            drop-shadow(3px -3px 0px #000) 
+            drop-shadow(-3px 3px 0px #000);
+}
 
-/* --- LE BOUTON PLEIN ÉCRAN --- */
-/* --- Bouton Plein Écran (Visibilité Restaurée) --- */
+/* Effet de clic */
+.menu-boutons button:active {
+    transform: scale(0.9);
+}
+
+/* --- LE BOUTON PLEIN ÉCRAN (RESTE EN BAS) --- */
 .controles-ecran {
     position: fixed;
-    bottom: 30px; /* Un peu plus haut que le bord pour les pouces */
+    bottom: 30px; /* Fixé en bas de l'écran quoi qu'il arrive */
     left: 0;
     right: 0;
     display: flex;
     justify-content: center;
-    z-index: 6000; /* <--- PASSE DEVANT LES ÉTOILES (5000) */
+    z-index: 6000;
     pointer-events: auto !important;
 }
 
 .controles-ecran button {
-    background: rgba(49, 27, 146, 0.7); /* Plus opaque pour mieux le voir */
-    color: #e1bee7;
-    border: 2px solid rgba(225, 190, 231, 0.8);
-    padding: 12px 25px;
-    border-radius: 25px;
-    font-size: 1rem;
+    font-family: 'Mountains of Christmas', cursive;
+    background-color: rgba(0, 0, 0, 0.6) !important;
+    color: #FFD700 !important;
+    font-size: 0.9rem;
+    padding: 8px 20px;
+    border: 1px solid rgba(255, 215, 0, 0.3) !important;
+    border-radius: 30px;
+    text-transform: uppercase;
     cursor: pointer;
-    backdrop-filter: blur(5px);
-    transition: all 0.3s ease;
-    box-shadow: 0 4px 15px rgba(0,0,0,0.4);
-}
-
-.controles-ecran button:active {
-    transform: scale(0.9);
-    background: rgba(123, 31, 162, 0.9);
 }
 
 /* ==========================================================================
