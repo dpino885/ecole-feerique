@@ -543,7 +543,7 @@ h1 {
     color: white;
     cursor: pointer;
     box-shadow: 0 15px 30px rgba(0,0,0,0.4);
-    transition: transform 0.2s;
+    transition: transform 0.2s, box-shadow 0.2s;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -551,6 +551,21 @@ h1 {
 
 #grandeLettre:active {
     transform: scale(0.9) rotate(5deg);
+}
+
+@keyframes popup {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+@keyframes scintillement {
+    0%, 100% { box-shadow: 0 0 10px var(--couleur-scintillement, white), 0 15px 30px rgba(0,0,0,0.4); }
+    50% { box-shadow: 0 0 40px var(--couleur-scintillement, white), 0 15px 30px rgba(0,0,0,0.4); }
+}
+
+.anim-interaction {
+    animation: popup 0.3s ease-out, scintillement 1.5s ease-in-out 2;
 }
 
 /* L'emoji sous la lettre */

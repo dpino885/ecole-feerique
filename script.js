@@ -316,6 +316,41 @@ function lettrePrecedente() {
     afficherLettre();
 }
 
+function interagirLettre() {
+    const bouton = document.getElementById('grandeLettre');
+    if (!bouton) return;
+
+    // Animation Pop-up et Scintillement combinée
+    bouton.classList.remove('anim-interaction');
+    void bouton.offsetWidth; // Force reflow
+    bouton.classList.add('anim-interaction');
+
+    // Définir la couleur du scintillement en utilisant la couleur du dessin actuel
+    bouton.style.setProperty('--couleur-scintillement', couleurActuelle);
+
+    // Synchroniser avec le module Dessin
+    const alphabet = Object.keys(dictionnaireAlphabet);
+    const lettreEnCours = alphabet[indexLettreActuelle];
+
+    // On met à jour les variables globales du module dessin
+    typeActuel = 'lettre';
+    const indexLettreDessin = modelesLettres.indexOf(lettreEnCours);
+    if (indexLettreDessin !== -1) {
+        indexModeleActuel = indexLettreDessin;
+        // On force la mise à jour du fantôme en arrière-plan
+        afficherNouveauModele();
+    }
+
+    // On peut aussi déclencher la voix ou des particules supplémentaires ici si on veut
+    parler(`On dessine la lettre ${lettreEnCours.toUpperCase()} !`);
+
+    // On passe à la lettre suivante après un court délai pour laisser l'animation se faire,
+    // ou bien on ne fait que l'interaction sans changer de lettre (selon le besoin,
+    // ici on garde la lettre courante pour qu'elle puisse la voir et "l'envoyer" au dessin).
+    // Si tu veux qu'elle passe *aussi* à la suivante, décommente la ligne ci-dessous :
+    // setTimeout(lettreSuivante, 800);
+}
+
 // ==========================================================================
 // 5. LOGIQUE DES FORMES
 // ==========================================================================
