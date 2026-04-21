@@ -433,9 +433,12 @@ function apparaitreFeeGeante() {
 // ==========================================================================
 const canvasDessin = document.getElementById('canvasDessin');
 const ctxDessin = canvasDessin.getContext('2d', { willReadFrequently: true }); // Optimisé pour verifierTracerFini
+const canvasFantome = document.getElementById('canvasFantome');
+const ctxFantome = canvasFantome.getContext('2d', { willReadFrequently: true });
 let enTrainDeDessiner = false;
 let couleurActuelle = 'yellow';
 let estEnTrainDeCelebrer = false; 
+let pixelsAttendus = 0;
 
 const modelesLettres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const modelesChiffres = "0123456789".split("");
@@ -446,6 +449,8 @@ function initialiserDessin() {
     const conteneur = document.getElementById('conteneurCanevas');
     canvasDessin.width = conteneur.clientWidth;
     canvasDessin.height = conteneur.clientHeight;
+    canvasFantome.width = conteneur.clientWidth;
+    canvasFantome.height = conteneur.clientHeight;
     
     ctxDessin.lineJoin = 'round';
     ctxDessin.lineCap = 'round';
@@ -488,16 +493,45 @@ function preparerTracer(type) {
 
 function masquerTracer() {
     typeActuel = 'libre';
-    document.getElementById('modeleFantome').innerText = "";
+    ctxFantome.clearRect(0, 0, canvasFantome.width, canvasFantome.height);
+    pixelsAttendus = 0;
     parler("Dessin libre ! Amuse-toi !");
 }
 
 function afficherNouveauModele() {
-    const afficheur = document.getElementById('modeleFantome');
-    if (!afficheur) return;
+    ctxFantome.clearRect(0, 0, canvasFantome.width, canvasFantome.height);
+
+    if (typeActuel === 'libre') return;
 
     let caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
-    afficheur.innerText = caractere;
+
+    // Dessiner le modèle sur le canvas fantôme
+    ctxFantome.font = "350px 'Arial', sans-serif";
+    ctxFantome.textAlign = "center";
+    ctxFantome.textBaseline = "middle";
+
+    // Couleur transparente/grise pour ressembler à un tracé à suivre sur tableau noir
+    ctxFantome.fillStyle = "rgba(255, 255, 255, 0.2)";
+    // Optionnel: ajouter un contour
+    ctxFantome.strokeStyle = "rgba(255, 255, 255, 0.4)";
+    ctxFantome.lineWidth = 5;
+
+    const centerX = canvasFantome.width / 2;
+    const centerY = canvasFantome.height / 2;
+
+    ctxFantome.fillText(caractere, centerX, centerY);
+    ctxFantome.strokeText(caractere, centerX, centerY);
+
+    // Calculer le nombre de pixels attendus
+    const imageData = ctxFantome.getImageData(0, 0, canvasFantome.width, canvasFantome.height);
+    const data = imageData.data;
+    pixelsAttendus = 0;
+
+    for (let i = 3; i < data.length; i += 4) {
+        if (data[i] > 10) { // Si le pixel n'est pas complètement transparent
+            pixelsAttendus++;
+        }
+    }
 
     // On force une petite pause avec une virgule pour que la tablette
     // ne fasse pas de liaison bizarre et respecte "la lettre"
@@ -562,30 +596,31 @@ function arreterDessin() {
 }
 
 function verifierTracerFini() {
-    if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
+    if (estEnTrainDeCelebrer || typeActuel === 'libre' || pixelsAttendus === 0) return;
 
-    const imageData = ctxDessin.getImageData(0, 0, canvasDessin.width, canvasDessin.height);
-    const pixels = imageData.data;
-    let pixelsColories = 0;
+    const imgDataDessin = ctxDessin.getImageData(0, 0, canvasDessin.width, canvasDessin.height);
+    const imgDataFantome = ctxFantome.getImageData(0, 0, canvasFantome.width, canvasFantome.height);
+    
+    const dataDessin = imgDataDessin.data;
+    const dataFantome = imgDataFantome.data;
+    
+    let pixelsCouverts = 0;
 
-    for (let i = 3; i < pixels.length; i += 20) { 
-        if (pixels[i] > 100) pixelsColories++;
+    // Parcourir tous les pixels (on regarde l'alpha, index + 3)
+    // On peut faire des sauts (par exemple += 16 pour tester 1 pixel sur 4) pour optimiser,
+    // mais puisque pixelsAttendus est calculé en parcourant tout, on parcourt tout pour que le ratio soit juste.
+    for (let i = 3; i < dataDessin.length; i += 4) {
+        // Si l'enfant a dessiné ici ET que ça fait partie du modèle
+        if (dataDessin[i] > 50 && dataFantome[i] > 10) {
+            pixelsCouverts++;
+        }
     }
 
-    // --- RÉGLAGE DYNAMIQUE DU SEUIL ---
-    const caractereActuel = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
-    
-    // Seuil par défaut pour les lettres larges (A, B, M, 8, etc.)
-    let seuilReussite = 2100; 
+    // Calcul du pourcentage de couverture
+    let pourcentageCouverture = pixelsCouverts / pixelsAttendus;
 
-    // Si c'est un caractère mince, on baisse le seuil de moitié
-    const caracteresMinces = ["I", "i", "1", "7", "L", "l", "J", "j", "T", "t", "f", "F"]
-    
-    if (caracteresMinces.includes(caractereActuel)) {
-        seuilReussite = 800; // Beaucoup plus facile pour les traits fins
-    }
-
-    if (pixelsColories > seuilReussite) { 
+    // Si l'enfant a recouvert au moins 60% du modèle (on peut ajuster)
+    if (pourcentageCouverture > 0.6) {
         celebrerFinTracer();
     }
 }
