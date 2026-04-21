@@ -190,14 +190,33 @@ function mettreAJourCompteur() {
 // ==========================================================================
 // 4. ALPHABET SÉQUENTIEL MAGIQUE
 // ==========================================================================
-const motsMagiques = {
-    'A': 'Arc-en-ciel', 'B': 'Baguette', 'C': 'Château', 'D': 'Dragon',
-    'E': 'Étoile', 'F': 'Fée', 'G': 'Gâteau', 'H': 'Hibou',
-    'I': 'Île', 'J': 'Jardin', 'K': 'Koala', 'L': 'Lune',
-    'M': 'Magie', 'N': 'Nuage', 'O': 'Oiseau', 'P': 'Papillon',
-    'Q': 'Quiche', 'R': 'Reine', 'S': 'Soleil', 'T': 'Trésor',
-    'U': 'Unique', 'V': 'Vaguette', 'W': 'Wagon', 'X': 'Xylophone',
-    'Y': 'Yack', 'Z': 'Zèbre'
+const dictionnaireAlphabet = {
+    'A': { mot: 'Avion', emoji: '✈️' },
+    'B': { mot: 'Ballon', emoji: '🎈' },
+    'C': { mot: 'Chat', emoji: '🐱' },
+    'D': { mot: 'Dinosaure', emoji: '🦖' },
+    'E': { mot: 'Éléphant', emoji: '🐘' },
+    'F': { mot: 'Fleur', emoji: '🌸' },
+    'G': { mot: 'Gâteau', emoji: '🍰' },
+    'H': { mot: 'Hibou', emoji: '🦉' },
+    'I': { mot: 'Île', emoji: '🏝️' },
+    'J': { mot: 'Jardin', emoji: '🏡' },
+    'K': { mot: 'Kangourou', emoji: '🦘' },
+    'L': { mot: 'Lion', emoji: '🦁' },
+    'M': { mot: 'Maison', emoji: '🏠' },
+    'N': { mot: 'Nuage', emoji: '☁️' },
+    'O': { mot: 'Ours', emoji: '🧸' },
+    'P': { mot: 'Pomme', emoji: '🍎' },
+    'Q': { mot: 'Quille', emoji: '🎳' },
+    'R': { mot: 'Robot', emoji: '🤖' },
+    'S': { mot: 'Soleil', emoji: '☀️' },
+    'T': { mot: 'Train', emoji: '🚂' },
+    'U': { mot: 'Unicorne', emoji: '🦄' },
+    'V': { mot: 'Vélo', emoji: '🚲' },
+    'W': { mot: 'Wagon', emoji: '🚃' },
+    'X': { mot: 'Xylophone', emoji: '🎹' },
+    'Y': { mot: 'Yaourt', emoji: '🍦' },
+    'Z': { mot: 'Zèbre', emoji: '🦓' }
 };
 
 let indexLettreActuelle = 0;
@@ -238,23 +257,34 @@ function demarrerAlphabet() {
  * Gère l'affichage et la voix pour la lettre en cours
  */
 function afficherLettre() {
-    const alphabet = Object.keys(motsMagiques);
+    const alphabet = Object.keys(dictionnaireAlphabet);
     const lettre = alphabet[indexLettreActuelle];
-    const mot = motsMagiques[lettre];
+    const data = dictionnaireAlphabet[lettre];
+    const mot = data.mot;
+    const emoji = data.emoji;
     
     const bouton = document.getElementById('grandeLettre');
+    const emojiExemple = document.getElementById('emojiExemple');
     const texteMot = document.getElementById('motExemple');
     
-    if (bouton && texteMot) {
+    if (bouton && texteMot && emojiExemple) {
         bouton.innerText = lettre;
         texteMot.innerText = mot;
+        emojiExemple.innerText = emoji;
+
+        // Remove the bounce class to reset the animation
+        emojiExemple.classList.remove('bounce-animation');
+        // Force a reflow to restart the animation
+        void emojiExemple.offsetWidth;
+        // Add the bounce class back
+        emojiExemple.classList.add('bounce-animation');
         
         // Couleur dynamique (arc-en-ciel au fil de l'alphabet)
         const teinte = (indexLettreActuelle * (360 / 26));
         bouton.style.background = `linear-gradient(135deg, hsl(${teinte}, 70%, 60%), hsl(${teinte}, 80%, 40%))`;
         
         // La fée parle
-        parler(`La lettre ${lettre.toLowerCase()}... comme ${mot} !`);
+        parler(`${lettre.toUpperCase()} comme ${mot}`);
         
         // Explosion d'étoiles au centre
         for (let i = 0; i < 20; i++) {
@@ -266,7 +296,7 @@ function afficherLettre() {
 }
 
 function lettreSuivante() {
-    const alphabet = Object.keys(motsMagiques);
+    const alphabet = Object.keys(dictionnaireAlphabet);
     indexLettreActuelle++;
     
     if (indexLettreActuelle >= alphabet.length) {
@@ -277,13 +307,48 @@ function lettreSuivante() {
 }
 
 function lettrePrecedente() {
-    const alphabet = Object.keys(motsMagiques);
+    const alphabet = Object.keys(dictionnaireAlphabet);
     indexLettreActuelle--;
     
     if (indexLettreActuelle < 0) {
         indexLettreActuelle = alphabet.length - 1;
     }
     afficherLettre();
+}
+
+function interagirLettre() {
+    const bouton = document.getElementById('grandeLettre');
+    if (!bouton) return;
+
+    // Animation Pop-up et Scintillement combinée
+    bouton.classList.remove('anim-interaction');
+    void bouton.offsetWidth; // Force reflow
+    bouton.classList.add('anim-interaction');
+
+    // Définir la couleur du scintillement en utilisant la couleur du dessin actuel
+    bouton.style.setProperty('--couleur-scintillement', couleurActuelle);
+
+    // Synchroniser avec le module Dessin
+    const alphabet = Object.keys(dictionnaireAlphabet);
+    const lettreEnCours = alphabet[indexLettreActuelle];
+
+    // On met à jour les variables globales du module dessin
+    typeActuel = 'lettre';
+    const indexLettreDessin = modelesLettres.indexOf(lettreEnCours);
+    if (indexLettreDessin !== -1) {
+        indexModeleActuel = indexLettreDessin;
+        // On force la mise à jour du fantôme en arrière-plan
+        afficherNouveauModele();
+    }
+
+    // On peut aussi déclencher la voix ou des particules supplémentaires ici si on veut
+    parler(`On dessine la lettre ${lettreEnCours.toUpperCase()} !`);
+
+    // On passe à la lettre suivante après un court délai pour laisser l'animation se faire,
+    // ou bien on ne fait que l'interaction sans changer de lettre (selon le besoin,
+    // ici on garde la lettre courante pour qu'elle puisse la voir et "l'envoyer" au dessin).
+    // Si tu veux qu'elle passe *aussi* à la suivante, décommente la ligne ci-dessous :
+    // setTimeout(lettreSuivante, 800);
 }
 
 // ==========================================================================
