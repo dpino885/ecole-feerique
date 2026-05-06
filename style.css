@@ -21,7 +21,10 @@ body {
 }
 
 /* On s'assure que rien ne bloque l'image de fond */
-.module-ecran, #moduleDessin {
+.module-ecran,
+#moduleDessin,
+#moduleTracerLettres,
+#moduleTracerChiffres {
     background: transparent !important;
 }
 
@@ -57,11 +60,15 @@ body {
    2. LES ÉTAGES (Z-INDEX) - LA GESTION DES COUCHES
    ========================================================================== */
 /* Étage 10 : Le canevas de dessin (tout au fond du jeu) */
-#canvasDessin {
-    position: fixed;
+#canvasDessin,
+#canvasTracerLettres,
+#canvasTracerChiffres {
+    position: absolute;
     top: 0;
     left: 0;
-    z-index: 10;
+    width: 100%;
+    height: 100%;
+    z-index: 5;
     background: transparent;
     touch-action: none;
 }
@@ -83,7 +90,8 @@ body {
 
 /* Étage 500 : Les éléments cliquables dans les jeux */
 .fee-cliquable, .lettre-bouton, .forme-btn, .barre-outils,
-.forme-option, .nav-btn, #grandeLettre, .btn-jouer-alphabet {
+.forme-option, .nav-btn, #grandeLettre, .btn-jouer-alphabet,
+.pastille-laterale, .btn-outil-special, .btn-mode-lateral {
     pointer-events: auto !important;
     z-index: 500;
 }
@@ -265,6 +273,26 @@ h1 {
     transform: scale(0.9);
 }
 
+/* Boutons menu sans image (ex. Tracer lettres / chiffres) */
+.menu-boutons .btn-menu-texte {
+    width: 280px;
+    height: 120px;
+    background: rgba(0, 0, 0, 0.55) !important;
+    border: 3px solid rgba(255, 215, 0, 0.5) !important;
+    border-radius: 24px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
+}
+
+.menu-texte-bulle {
+    font-family: 'Mountains of Christmas', cursive;
+    font-size: 1.55rem;
+    color: #FFD700;
+    text-shadow: 2px 2px 0 #000;
+    line-height: 1.2;
+    text-align: center;
+    pointer-events: none;
+}
+
 /* --- LE BOUTON PLEIN ÉCRAN (RESTE EN BAS) --- */
 .controles-ecran {
     position: fixed;
@@ -294,7 +322,9 @@ h1 {
    ========================================================================== */
 
 /* --- CONTENEUR PRINCIPAL (MODE ROW) --- */
-#moduleDessin {
+#moduleDessin,
+#moduleTracerLettres,
+#moduleTracerChiffres {
     position: fixed;
     top: 0;
     left: 0;
@@ -307,7 +337,9 @@ h1 {
     pointer-events: auto;
 }
 
-#conteneurCanevas {
+#conteneurCanevas,
+#conteneurTracerLettres,
+#conteneurTracerChiffres {
     position: relative;
     flex: 1;
     height: 100%;
@@ -318,7 +350,9 @@ h1 {
     justify-content: center;
 }
 
-#modeleFantome {
+#modeleFantome,
+#modeleFantomeLettres,
+#modeleFantomeChiffres {
     position: absolute;
     top: 50%;
     left: 50%;
@@ -347,16 +381,6 @@ h1 {
     border-radius: 10px;
     margin: 20px; /* Espace autour du tableau */
     box-sizing: border-box;
-}
-
-#canvasDessin {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    z-index: 5; /* DEVANT la lettre */
-    touch-action: none;
 }
 
 /* --- LA BARRE LATÉRALE D'OUTILS (DROITE) --- */

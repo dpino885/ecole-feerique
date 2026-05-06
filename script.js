@@ -64,14 +64,20 @@ if (ctx && canvas) {
     gererParticules();
 }
 
+function estPlancheDessinOuverte() {
+    return ['moduleDessin', 'moduleTracerLettres', 'moduleTracerChiffres'].some((id) => {
+        const el = document.getElementById(id);
+        return el && el.style.display !== 'none';
+    });
+}
+
 function creerTrainee(e) {
     let x = e.touches ? e.touches[0].clientX : e.clientX;
     let y = e.touches ? e.touches[0].clientY : e.clientY;
     for (let i = 0; i < 3; i++) {
         let p = new Particule(x, y);
-        const moduleDessin = document.getElementById('moduleDessin');
-        if (moduleDessin && moduleDessin.style.display !== 'none') {
-            p.couleur = couleurActuelle; 
+        if (estPlancheDessinOuverte()) {
+            p.couleur = couleurActuelle;
         }
         particules.push(p);
     }
@@ -90,62 +96,85 @@ function basculerPleinEcran() {
     }
 }
 
-function ouvrirModule(type) {
-    // On cache le menu et on montre le bouton retour
+const IDS_MODULES_JEU = [
+    'moduleChiffres',
+    'moduleAlphabet',
+    'moduleFormes',
+    'moduleDessin',
+    'moduleTracerLettres',
+    'moduleTracerChiffres'
+];
+
+function ouvrirModule(type, options) {
+    options = options || {};
     const menu = document.getElementById('menuPrincipal');
     const btnRetour = document.getElementById('btnRetourGlobal');
     if (menu) menu.style.display = 'none';
     if (btnRetour) btnRetour.style.display = 'flex';
 
-    // On cache tous les modules
-    const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
-    modules.forEach(id => {
+    IDS_MODULES_JEU.forEach((id) => {
         const el = document.getElementById(id);
-        if(el) el.style.display = 'none';
+        if (el) el.style.display = 'none';
     });
 
-    // Logique spécifique par module
-    if(type === 'chiffres') {
+    if (type === 'chiffres') {
         const el = document.getElementById('moduleChiffres');
         if (el) el.style.display = 'block';
         parler("Trouve les fées cachées et compte avec moi !");
         initialiserJeuFées();
-    } else if(type === 'alphabet') {
+    } else if (type === 'alphabet') {
         const el = document.getElementById('moduleAlphabet');
         if (el) el.style.display = 'flex';
         genererAlphabet();
         parler("L'alphabet des fées !");
-    } else if(type === 'formes') {
+    } else if (type === 'formes') {
         const el = document.getElementById('moduleFormes');
         if (el) el.style.display = 'flex';
         parler("Le jardin des formes !");
-        ouvrirModuleFormes(); // <--- LA LIGNE MANQUANTE EST ICI !
- } else if(type === 'dessin') {
-        // ON CHANGE 'block' par 'flex' ici :
+        ouvrirModuleFormes();
+    } else if (type === 'dessin') {
+        bindDessinSurface(SURFACE_LIBRE);
         const el = document.getElementById('moduleDessin');
         if (el) el.style.display = 'flex';
-        
         const btnRetourGlobal = document.getElementById('btnRetourGlobal');
         if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
-        
-        // On s'assure que le canvas prend la bonne taille tout de suite
+        typeActuel = 'libre';
+        if (configDessin.fantome) configDessin.fantome.innerText = '';
+        effacerDessin(false);
         initialiserDessin();
-        
-        // Si tu as ajouté la fonction pour les lettres/chiffres :
-        if (typeof masquerTracer === "function") {
-            masquerTracer(); // On commence en mode dessin libre
-        }
-
         parler("Dessine avec tes doigts magiques !");
+    } else if (type === 'tracerLettres') {
+        bindDessinSurface(SURFACE_LETTRES);
+        const el = document.getElementById('moduleTracerLettres');
+        if (el) el.style.display = 'flex';
+        typeActuel = 'lettre';
+        const lettre = options.lettre;
+        if (lettre && modelesLettres.indexOf(lettre) !== -1) {
+            indexModeleActuel = modelesLettres.indexOf(lettre);
+        } else {
+            indexModeleActuel = 0;
+        }
+        initialiserDessin();
+        effacerDessin(false);
+        afficherNouveauModele();
+    } else if (type === 'tracerChiffres') {
+        bindDessinSurface(SURFACE_CHIFFRES);
+        const el = document.getElementById('moduleTracerChiffres');
+        if (el) el.style.display = 'flex';
+        typeActuel = 'chiffre';
+        indexModeleActuel = 0;
+        initialiserDessin();
+        effacerDessin(false);
+        afficherNouveauModele();
     }
 }
+
 function retourMenu() {
     const btnRetour = document.getElementById('btnRetourGlobal');
     if (btnRetour) btnRetour.style.display = 'none';
-    const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
-    modules.forEach(id => {
+    IDS_MODULES_JEU.forEach((id) => {
         const el = document.getElementById(id);
-        if(el) el.style.display = 'none';
+        if (el) el.style.display = 'none';
     });
     const menu = document.getElementById('menuPrincipal');
     if (menu) menu.style.display = 'flex';
@@ -335,35 +364,16 @@ function interagirLettre() {
     const bouton = document.getElementById('grandeLettre');
     if (!bouton) return;
 
-    // Animation Pop-up et Scintillement combinée
     bouton.classList.remove('anim-interaction');
-    void bouton.offsetWidth; // Force reflow
+    void bouton.offsetWidth;
     bouton.classList.add('anim-interaction');
 
-    // Définir la couleur du scintillement en utilisant la couleur du dessin actuel
     bouton.style.setProperty('--couleur-scintillement', couleurActuelle);
 
-    // Synchroniser avec le module Dessin
     const alphabet = Object.keys(dictionnaireAlphabet);
     const lettreEnCours = alphabet[indexLettreActuelle];
 
-    // On met à jour les variables globales du module dessin
-    typeActuel = 'lettre';
-    const indexLettreDessin = modelesLettres.indexOf(lettreEnCours);
-    if (indexLettreDessin !== -1) {
-        indexModeleActuel = indexLettreDessin;
-        // On force la mise à jour du fantôme en arrière-plan
-        afficherNouveauModele();
-    }
-
-    // On peut aussi déclencher la voix ou des particules supplémentaires ici si on veut
-    parler(`On dessine la lettre ${lettreEnCours.toUpperCase()} !`);
-
-    // On passe à la lettre suivante après un court délai pour laisser l'animation se faire,
-    // ou bien on ne fait que l'interaction sans changer de lettre (selon le besoin,
-    // ici on garde la lettre courante pour qu'elle puisse la voir et "l'envoyer" au dessin).
-    // Si tu veux qu'elle passe *aussi* à la suivante, décommente la ligne ci-dessous :
-    // setTimeout(lettreSuivante, 800);
+    ouvrirModule('tracerLettres', { lettre: lettreEnCours });
 }
 
 // ==========================================================================
@@ -511,15 +521,65 @@ function apparaitreFeeGeante() {
 // ==========================================================================
 // 6. LOGIQUE DU DESSIN (AVEC POINTS DE PASSAGE)
 // ==========================================================================
-const canvasDessin = document.getElementById('canvasDessin');
-const ctxDessin = canvasDessin ? canvasDessin.getContext('2d', { willReadFrequently: true }) : null;
+const SURFACE_LIBRE = {
+    moduleId: 'moduleDessin',
+    canvasId: 'canvasDessin',
+    conteneurId: 'conteneurCanevas',
+    fantomeId: 'modeleFantome'
+};
+const SURFACE_LETTRES = {
+    moduleId: 'moduleTracerLettres',
+    canvasId: 'canvasTracerLettres',
+    conteneurId: 'conteneurTracerLettres',
+    fantomeId: 'modeleFantomeLettres'
+};
+const SURFACE_CHIFFRES = {
+    moduleId: 'moduleTracerChiffres',
+    canvasId: 'canvasTracerChiffres',
+    conteneurId: 'conteneurTracerChiffres',
+    fantomeId: 'modeleFantomeChiffres'
+};
+
+const configDessin = {
+    moduleEl: null,
+    canvas: null,
+    ctx: null,
+    conteneur: null,
+    fantome: null
+};
+
+function bindDessinSurface(spec) {
+    configDessin.moduleEl = document.getElementById(spec.moduleId);
+    configDessin.canvas = document.getElementById(spec.canvasId);
+    configDessin.ctx = configDessin.canvas
+        ? configDessin.canvas.getContext('2d', { willReadFrequently: true })
+        : null;
+    configDessin.conteneur = document.getElementById(spec.conteneurId);
+    configDessin.fantome = document.getElementById(spec.fantomeId);
+}
+
+let dernierCanvasDessin = null;
+
+function syncSurfaceDepuisCanvas(canvas) {
+    if (!canvas || !canvas.id) return;
+    const map = {
+        canvasDessin: SURFACE_LIBRE,
+        canvasTracerLettres: SURFACE_LETTRES,
+        canvasTracerChiffres: SURFACE_CHIFFRES
+    };
+    const spec = map[canvas.id];
+    if (spec) bindDessinSurface(spec);
+}
+
+bindDessinSurface(SURFACE_LIBRE);
+
 let enTrainDeDessiner = false;
 let couleurActuelle = 'yellow';
 let estEnTrainDeCelebrer = false;
 
 const modelesLettres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const modelesChiffres = "0123456789".split("");
-let indexModeleActuel = 0; 
+let indexModeleActuel = 0;
 let typeActuel = 'libre';
 
 // --- NOUVEAU : BASE DE DONNÉES DES POINTS DE PASSAGE ---
@@ -534,17 +594,16 @@ const pointsCles = {
 let pointsTouchesActuels = [];
 
 function initialiserDessin() {
-    const conteneur = document.getElementById('conteneurCanevas');
-    if (!canvasDessin || !ctxDessin || !conteneur) return;
-    canvasDessin.width = conteneur.clientWidth;
-    canvasDessin.height = conteneur.clientHeight;
-    
-    ctxDessin.lineJoin = 'round';
-    ctxDessin.lineCap = 'round';
-    ctxDessin.lineWidth = 20; // Épais pour faciliter le tracé
-    
-    const moduleDessin = document.getElementById('moduleDessin');
-    if (moduleDessin) moduleDessin.style.zIndex = "500";
+    const { canvas, ctx, conteneur, moduleEl } = configDessin;
+    if (!canvas || !ctx || !conteneur) return;
+    canvas.width = conteneur.clientWidth;
+    canvas.height = conteneur.clientHeight;
+
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 20;
+
+    if (moduleEl) moduleEl.style.zIndex = '500';
 }
 
 function changerCouleur(c) { 
@@ -552,11 +611,12 @@ function changerCouleur(c) {
     parler("Couleur magique !");
 }
 
-function effacerDessin(changerDeLettre = true) { 
-    if (!canvasDessin || !ctxDessin) return;
-    ctxDessin.clearRect(0, 0, canvasDessin.width, canvasDessin.height); 
-    pointsTouchesActuels = []; // Réinitialise les points
-    
+function effacerDessin(changerDeLettre = true) {
+    const { canvas, ctx } = configDessin;
+    if (!canvas || !ctx) return;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    pointsTouchesActuels = [];
+
     if (typeActuel !== 'libre' && changerDeLettre) {
         if (typeActuel === 'lettre') {
             indexModeleActuel = (indexModeleActuel + 1) % modelesLettres.length;
@@ -568,93 +628,74 @@ function effacerDessin(changerDeLettre = true) {
 }
 
 function afficherNouveauModele() {
-    const afficheur = document.getElementById('modeleFantome');
+    const afficheur = configDessin.fantome;
     if (!afficheur) return;
 
-    pointsTouchesActuels = []; // Reset des points
-    let caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
+    pointsTouchesActuels = [];
+    let caractere =
+        typeActuel === 'lettre'
+            ? modelesLettres[indexModeleActuel]
+            : modelesChiffres[indexModeleActuel];
     afficheur.innerText = caractere;
 
-    // --- NOUVEAU : DESSINER LES ÉTOILES GUIDES ---
     dessinerEtoilesGuides(caractere);
 
-    let texte = (typeActuel === 'lettre') ? "la lettre " + caractere.toLowerCase() : "le chiffre " + caractere;
-    parler("Essaie de tracer " + texte);
+    let texte =
+        typeActuel === 'lettre'
+            ? 'la lettre ' + caractere.toLowerCase()
+            : 'le chiffre ' + caractere;
+    parler('Essaie de tracer ' + texte);
 }
 
 function dessinerEtoilesGuides(caractere) {
-    if (!canvasDessin || !ctxDessin) return;
+    const { canvas, ctx } = configDessin;
+    if (!canvas || !ctx) return;
     const points = pointsCles[caractere];
     if (!points) return;
 
     points.forEach((p) => {
-        const targetX = canvasDessin.width * p.x;
-        const targetY = canvasDessin.height * p.y;
+        const targetX = canvas.width * p.x;
+        const targetY = canvas.height * p.y;
 
-        // On dessine une petite étoile ou un point brillant
-        ctxDessin.fillStyle = "rgba(255, 215, 0, 0.6)"; // Or transparent
-        ctxDessin.beginPath();
-        ctxDessin.arc(targetX, targetY, 12, 0, Math.PI * 2);
-        ctxDessin.fill();
-        
-        // Un petit contour brillant
-        ctxDessin.strokeStyle = "white";
-        ctxDessin.lineWidth = 2;
-        ctxDessin.stroke();
+        ctx.fillStyle = 'rgba(255, 215, 0, 0.6)';
+        ctx.beginPath();
+        ctx.arc(targetX, targetY, 12, 0, Math.PI * 2);
+        ctx.fill();
+
+        ctx.strokeStyle = 'white';
+        ctx.lineWidth = 2;
+        ctx.stroke();
     });
-}
-
-function preparerTracer(type) {
-    typeActuel = type;
-    indexModeleActuel = 0; // On commence au début (A ou 0)
-    
-    // On s'assure que le module est bien affiché
-    document.getElementById('moduleDessin').style.display = 'flex';
-    
-    // On efface le canevas et on prépare les points
-    effacerDessin(false); 
-    
-    // On recalibre la taille du canevas pour la tablette
-    initialiserDessin(); 
-    
-    // On affiche la lettre ou le chiffre
-    afficherNouveauModele();
-}
-
-function masquerTracer() {
-    typeActuel = 'libre';
-    const mf = document.getElementById('modeleFantome');
-    if (mf) mf.innerText = "";
-    effacerDessin(false);
-    parler("Dessin libre ! Amuse-toi !");
 }
 
 // --- GESTION DU TRACÉ ---
 function demarrerDessin(e) {
     if (estEnTrainDeCelebrer) return;
-    if (!canvasDessin || !ctxDessin) return;
+    syncSurfaceDepuisCanvas(e.currentTarget);
+    dernierCanvasDessin = e.currentTarget;
+    const { canvas, ctx } = configDessin;
+    if (!canvas || !ctx) return;
     enTrainDeDessiner = true;
     dessiner(e);
 }
 
 function dessiner(e) {
     if (!enTrainDeDessiner) return;
-    if (!canvasDessin || !ctxDessin) return;
-    const rect = canvasDessin.getBoundingClientRect();
+    const { canvas, ctx } = configDessin;
+    if (!canvas || !ctx) return;
+    const rect = canvas.getBoundingClientRect();
     let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
     let y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
 
-    // VERIFICATION DES POINTS CLES
     verifierPointsCles(x, y);
 
-    ctxDessin.strokeStyle = couleurActuelle;
-    ctxDessin.lineTo(x, y);
-    ctxDessin.stroke();
-    ctxDessin.beginPath();
-    ctxDessin.moveTo(x, y);
-    
-    // Particules pour l'effet magique
-    for(let i = 0; i < 2; i++) {
+    ctx.strokeStyle = couleurActuelle;
+    ctx.lineTo(x, y);
+    ctx.stroke();
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+
+    for (let i = 0; i < 2; i++) {
         let p = new Particule(x + rect.left, y + rect.top);
         p.couleur = couleurActuelle;
         particules.push(p);
@@ -662,43 +703,46 @@ function dessiner(e) {
 }
 
 function verifierPointsCles(x, y) {
-    if (!canvasDessin || !ctxDessin) return;
-    const caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
+    const { canvas, ctx } = configDessin;
+    if (!canvas || !ctx) return;
+    const caractere =
+        typeActuel === 'lettre'
+            ? modelesLettres[indexModeleActuel]
+            : modelesChiffres[indexModeleActuel];
     const points = pointsCles[caractere];
     if (!points) return;
 
     points.forEach((p, index) => {
-        const targetX = canvasDessin.width * p.x;
-        const targetY = canvasDessin.height * p.y;
+        const targetX = canvas.width * p.x;
+        const targetY = canvas.height * p.y;
         const distance = Math.sqrt(Math.pow(x - targetX, 2) + Math.pow(y - targetY, 2));
 
-        // Si le doigt est à moins de 45 pixels du point invisible
         if (distance < 45 && !pointsTouchesActuels.includes(index)) {
             pointsTouchesActuels.push(index);
-
-            // OPTIONNEL : Efface visuellement l'étoile quand on la touche
-            ctxDessin.clearRect(targetX - 20, targetY - 20, 40, 40);
+            ctx.clearRect(targetX - 20, targetY - 20, 40, 40);
         }
     });
 }
 
 let timerVerification;
 function arreterDessin() {
-    if (!ctxDessin) return;
+    if (dernierCanvasDessin) syncSurfaceDepuisCanvas(dernierCanvasDessin);
+    const { ctx } = configDessin;
+    if (!ctx) return;
     if (enTrainDeDessiner && typeActuel !== 'libre') {
         clearTimeout(timerVerification);
-        timerVerification = setTimeout(verifierTracerFini, 1200); 
+        timerVerification = setTimeout(verifierTracerFini, 1200);
     }
     enTrainDeDessiner = false;
-    ctxDessin.beginPath();
+    ctx.beginPath();
 }
 
 function verifierTracerFini() {
     if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
-    if (!canvasDessin || !ctxDessin) return;
+    const { canvas, ctx } = configDessin;
+    if (!canvas || !ctx) return;
 
-    // 1. Calculer le remplissage (Pixels)
-    const imageData = ctxDessin.getImageData(0, 0, canvasDessin.width, canvasDessin.height);
+    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
     const pixels = imageData.data;
     let pixelsColories = 0;
     for (let i = 3; i < pixels.length; i += 25) { 
@@ -717,7 +761,8 @@ function verifierTracerFini() {
 
 function celebrerFinTracer() {
     if (estEnTrainDeCelebrer) return;
-    if (!canvasDessin || !ctxDessin) return;
+    const { canvas, ctx } = configDessin;
+    if (!canvas || !ctx) return;
     estEnTrainDeCelebrer = true;
     
     parler("C'est magnifique ! Bravo !");
@@ -735,12 +780,31 @@ function celebrerFinTracer() {
     }, 5000); 
 }
 
-// ÉCOUTEURS
-if (canvasDessin) {
-    canvasDessin.addEventListener('mousedown', demarrerDessin);
-    canvasDessin.addEventListener('mousemove', dessiner);
-    canvasDessin.addEventListener('touchstart', (e) => { e.preventDefault(); demarrerDessin(e); }, {passive: false});
-    canvasDessin.addEventListener('touchmove', (e) => { e.preventDefault(); dessiner(e); }, {passive: false});
+function brancherEvenementsCanvas(canvas) {
+    if (!canvas) return;
+    canvas.addEventListener('mousedown', demarrerDessin);
+    canvas.addEventListener('mousemove', dessiner);
+    canvas.addEventListener(
+        'touchstart',
+        (e) => {
+            e.preventDefault();
+            demarrerDessin(e);
+        },
+        { passive: false }
+    );
+    canvas.addEventListener(
+        'touchmove',
+        (e) => {
+            e.preventDefault();
+            dessiner(e);
+        },
+        { passive: false }
+    );
 }
+
+brancherEvenementsCanvas(document.getElementById('canvasDessin'));
+brancherEvenementsCanvas(document.getElementById('canvasTracerLettres'));
+brancherEvenementsCanvas(document.getElementById('canvasTracerChiffres'));
+
 window.addEventListener('mouseup', arreterDessin);
 window.addEventListener('touchend', arreterDessin);
