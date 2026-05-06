@@ -2,6 +2,7 @@
 // 1. CONFIGURATION DE LA VOIX ET DES ÉTOILES
 // ==========================================================================
 function parler(message) {
+    if (!("speechSynthesis" in window)) return;
     window.speechSynthesis.cancel();
     const msg = new SpeechSynthesisUtterance(message);
     msg.lang = 'fr-CA'; // Force l'accent québécois
@@ -10,10 +11,11 @@ function parler(message) {
 }
 
 const canvas = document.getElementById('canvasParticules');
-const ctx = canvas.getContext('2d');
+const ctx = canvas ? canvas.getContext('2d') : null;
 let particules = [];
 
 function redimensionner() {
+    if (!canvas) return;
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 }
@@ -36,6 +38,7 @@ class Particule {
         this.vie -= 0.02; 
     }
     dessiner() {
+        if (!ctx) return;
         ctx.fillStyle = this.couleur;
         ctx.globalAlpha = this.vie;
         ctx.beginPath();
@@ -45,6 +48,7 @@ class Particule {
 }
 
 function gererParticules() {
+    if (!ctx || !canvas) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let i = 0; i < particules.length; i++) {
         particules[i].update();
@@ -56,7 +60,9 @@ function gererParticules() {
     }
     requestAnimationFrame(gererParticules);
 }
-gererParticules();
+if (ctx && canvas) {
+    gererParticules();
+}
 
 function creerTrainee(e) {
     let x = e.touches ? e.touches[0].clientX : e.clientX;
@@ -64,7 +70,7 @@ function creerTrainee(e) {
     for (let i = 0; i < 3; i++) {
         let p = new Particule(x, y);
         const moduleDessin = document.getElementById('moduleDessin');
-        if (moduleDessin && moduleDessin.style.display === 'block') {
+        if (moduleDessin && moduleDessin.style.display !== 'none') {
             p.couleur = couleurActuelle; 
         }
         particules.push(p);
@@ -86,8 +92,10 @@ function basculerPleinEcran() {
 
 function ouvrirModule(type) {
     // On cache le menu et on montre le bouton retour
-    document.getElementById('menuPrincipal').style.display = 'none';
-    document.getElementById('btnRetourGlobal').style.display = 'flex';
+    const menu = document.getElementById('menuPrincipal');
+    const btnRetour = document.getElementById('btnRetourGlobal');
+    if (menu) menu.style.display = 'none';
+    if (btnRetour) btnRetour.style.display = 'flex';
 
     // On cache tous les modules
     const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
@@ -98,22 +106,27 @@ function ouvrirModule(type) {
 
     // Logique spécifique par module
     if(type === 'chiffres') {
-        document.getElementById('moduleChiffres').style.display = 'block';
+        const el = document.getElementById('moduleChiffres');
+        if (el) el.style.display = 'block';
         parler("Trouve les fées cachées et compte avec moi !");
         initialiserJeuFées();
     } else if(type === 'alphabet') {
-        document.getElementById('moduleAlphabet').style.display = 'block';
+        const el = document.getElementById('moduleAlphabet');
+        if (el) el.style.display = 'flex';
         genererAlphabet();
         parler("L'alphabet des fées !");
     } else if(type === 'formes') {
-        document.getElementById('moduleFormes').style.display = 'block';
+        const el = document.getElementById('moduleFormes');
+        if (el) el.style.display = 'flex';
         parler("Le jardin des formes !");
         ouvrirModuleFormes(); // <--- LA LIGNE MANQUANTE EST ICI !
  } else if(type === 'dessin') {
         // ON CHANGE 'block' par 'flex' ici :
-        document.getElementById('moduleDessin').style.display = 'flex';
+        const el = document.getElementById('moduleDessin');
+        if (el) el.style.display = 'flex';
         
-        document.getElementById('btnRetourGlobal').style.display = 'none';
+        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
+        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
         
         // On s'assure que le canvas prend la bonne taille tout de suite
         initialiserDessin();
@@ -127,13 +140,15 @@ function ouvrirModule(type) {
     }
 }
 function retourMenu() {
-    document.getElementById('btnRetourGlobal').style.display = 'none';
+    const btnRetour = document.getElementById('btnRetourGlobal');
+    if (btnRetour) btnRetour.style.display = 'none';
     const modules = ['moduleChiffres', 'moduleAlphabet', 'moduleFormes', 'moduleDessin'];
     modules.forEach(id => {
         const el = document.getElementById(id);
         if(el) el.style.display = 'none';
     });
-    document.getElementById('menuPrincipal').style.display = 'flex';
+    const menu = document.getElementById('menuPrincipal');
+    if (menu) menu.style.display = 'flex';
 }
 
 // ==========================================================================
@@ -429,10 +444,10 @@ function apparaitreFeeGeante() {
 }
 
 // ==========================================================================
-// 6. LOGIQUE DU DESSIN
+// 6. LOGIQUE DU DESSIN (AVEC POINTS DE PASSAGE)
 // ==========================================================================
 const canvasDessin = document.getElementById('canvasDessin');
-const ctxDessin = canvasDessin.getContext('2d', { willReadFrequently: true }); // Optimisé pour verifierTracerFini
+const ctxDessin = canvasDessin ? canvasDessin.getContext('2d', { willReadFrequently: true }) : null;
 let enTrainDeDessiner = false;
 let couleurActuelle = 'yellow';
 let estEnTrainDeCelebrer = false; 
@@ -442,32 +457,40 @@ const modelesChiffres = "0123456789".split("");
 let indexModeleActuel = 0; 
 let typeActuel = 'libre';
 
+// --- NOUVEAU : BASE DE DONNÉES DES POINTS DE PASSAGE ---
+// x: 0.5 est le milieu horizontal, y: 0.5 est le milieu vertical
+const pointsCles = {
+    "1": [{x: 0.5, y: 0.2}, {x: 0.5, y: 0.5}, {x: 0.5, y: 0.8}],
+    "2": [{x: 0.35, y: 0.3}, {x: 0.65, y: 0.3}, {x: 0.5, y: 0.5}, {x: 0.35, y: 0.8}, {x: 0.65, y: 0.8}],
+    "3": [{x: 0.35, y: 0.25}, {x: 0.65, y: 0.25}, {x: 0.5, y: 0.5}, {x: 0.65, y: 0.75}, {x: 0.35, y: 0.75}],
+    "A": [{x: 0.5, y: 0.2}, {x: 0.3, y: 0.8}, {x: 0.7, y: 0.8}, {x: 0.4, y: 0.5}, {x: 0.6, y: 0.5}],
+    "B": [{x: 0.35, y: 0.2}, {x: 0.35, y: 0.8}, {x: 0.65, y: 0.35}, {x: 0.35, y: 0.5}, {x: 0.65, y: 0.65}]
+};
+let pointsTouchesActuels = [];
+
 function initialiserDessin() {
     const conteneur = document.getElementById('conteneurCanevas');
+    if (!canvasDessin || !ctxDessin || !conteneur) return;
     canvasDessin.width = conteneur.clientWidth;
     canvasDessin.height = conteneur.clientHeight;
     
     ctxDessin.lineJoin = 'round';
     ctxDessin.lineCap = 'round';
-    ctxDessin.lineWidth = 15; // Un peu plus épais pour faciliter la détection
+    ctxDessin.lineWidth = 20; // Épais pour faciliter le tracé
     
-    document.getElementById('moduleDessin').style.zIndex = "500";
+    const moduleDessin = document.getElementById('moduleDessin');
+    if (moduleDessin) moduleDessin.style.zIndex = "500";
 }
 
 function changerCouleur(c) { 
     couleurActuelle = c; 
-    const noms = {
-        '#ff0000': "Rouge comme une pomme !", '#00ff00': "Vert comme l'herbe !",
-        '#0000ff': "Bleu comme le ciel !", '#ffff00': "Jaune comme le soleil !",
-        '#ff00ff': "Mauve comme une fleur !", '#ff9800': "Orange comme une citrouille !",
-        '#ffffff': "Blanc comme la neige !"
-    };
-    parler(noms[c] || "Couleur magique !");
+    parler("Couleur magique !");
 }
 
-// VERSION UNIQUE ET CORRIGÉE
 function effacerDessin(changerDeLettre = true) { 
+    if (!canvasDessin || !ctxDessin) return;
     ctxDessin.clearRect(0, 0, canvasDessin.width, canvasDessin.height); 
+    pointsTouchesActuels = []; // Réinitialise les points
     
     if (typeActuel !== 'libre' && changerDeLettre) {
         if (typeActuel === 'lettre') {
@@ -479,67 +502,92 @@ function effacerDessin(changerDeLettre = true) {
     }
 }
 
+function afficherNouveauModele() {
+    const afficheur = document.getElementById('modeleFantome');
+    if (!afficheur) return;
+
+    pointsTouchesActuels = []; // Reset des points
+    let caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
+    afficheur.innerText = caractere;
+
+    // --- NOUVEAU : DESSINER LES ÉTOILES GUIDES ---
+    dessinerEtoilesGuides(caractere);
+
+    let texte = (typeActuel === 'lettre') ? "la lettre " + caractere.toLowerCase() : "le chiffre " + caractere;
+    parler("Essaie de tracer " + texte);
+}
+
+function dessinerEtoilesGuides(caractere) {
+    if (!canvasDessin || !ctxDessin) return;
+    const points = pointsCles[caractere];
+    if (!points) return;
+
+    points.forEach((p) => {
+        const targetX = canvasDessin.width * p.x;
+        const targetY = canvasDessin.height * p.y;
+
+        // On dessine une petite étoile ou un point brillant
+        ctxDessin.fillStyle = "rgba(255, 215, 0, 0.6)"; // Or transparent
+        ctxDessin.beginPath();
+        ctxDessin.arc(targetX, targetY, 12, 0, Math.PI * 2);
+        ctxDessin.fill();
+        
+        // Un petit contour brillant
+        ctxDessin.strokeStyle = "white";
+        ctxDessin.lineWidth = 2;
+        ctxDessin.stroke();
+    });
+}
+
 function preparerTracer(type) {
     typeActuel = type;
-    indexModeleActuel = 0; // On commence bien au début (A ou 0)
-    effacerDessin(false);  // On efface SANS changer la lettre pour rester sur le A
+    indexModeleActuel = 0; // On commence au début (A ou 0)
+    
+    // On s'assure que le module est bien affiché
+    document.getElementById('moduleDessin').style.display = 'flex';
+    
+    // On efface le canevas et on prépare les points
+    effacerDessin(false); 
+    
+    // On recalibre la taille du canevas pour la tablette
+    initialiserDessin(); 
+    
+    // On affiche la lettre ou le chiffre
     afficherNouveauModele();
 }
 
 function masquerTracer() {
     typeActuel = 'libre';
     document.getElementById('modeleFantome').innerText = "";
+    effacerDessin(false);
     parler("Dessin libre ! Amuse-toi !");
 }
 
-function afficherNouveauModele() {
-    const afficheur = document.getElementById('modeleFantome');
-    if (!afficheur) return;
-
-    let caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
-    afficheur.innerText = caractere;
-
-    // On force une petite pause avec une virgule pour que la tablette
-    // ne fasse pas de liaison bizarre et respecte "la lettre"
-    if (typeActuel === 'lettre') {
-        // En mettant le caractère en minuscule, certaines voix 
-        // sont moins "robotiques"
-        parler("Essaie de tracer la lettre, " + caractere.toLowerCase());
-    } else {
-        parler("Essaie de tracer le chiffre, " + caractere);
-    }
-}
-
-// GESTION DU TRACÉ
+// --- GESTION DU TRACÉ ---
 function demarrerDessin(e) {
     if (estEnTrainDeCelebrer) return;
+    if (!canvasDessin || !ctxDessin) return;
     enTrainDeDessiner = true;
     dessiner(e);
 }
 
-function arreterDessin() {
-    if (enTrainDeDessiner && typeActuel !== 'libre') {
-        verifierTracerFini();
-    }
-    enTrainDeDessiner = false;
-    ctxDessin.beginPath();
-}
-
 function dessiner(e) {
     if (!enTrainDeDessiner) return;
+    if (!canvasDessin || !ctxDessin) return;
     const rect = canvasDessin.getBoundingClientRect();
     let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
     let y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
 
-    ctxDessin.strokeStyle = couleurActuelle;
-    ctxDessin.shadowBlur = 5;
-    ctxDessin.shadowColor = couleurActuelle;
+    // VERIFICATION DES POINTS CLES
+    verifierPointsCles(x, y);
 
+    ctxDessin.strokeStyle = couleurActuelle;
     ctxDessin.lineTo(x, y);
     ctxDessin.stroke();
     ctxDessin.beginPath();
     ctxDessin.moveTo(x, y);
     
+    // Particules pour l'effet magique
     for(let i = 0; i < 2; i++) {
         let p = new Particule(x + rect.left, y + rect.top);
         p.couleur = couleurActuelle;
@@ -547,15 +595,33 @@ function dessiner(e) {
     }
 }
 
-// On ajoute un petit délai pour ne pas couper son élan
-let timerVerification;
+function verifierPointsCles(x, y) {
+    if (!canvasDessin || !ctxDessin) return;
+    const caractere = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
+    const points = pointsCles[caractere];
+    if (!points) return;
 
+    points.forEach((p, index) => {
+        const targetX = canvasDessin.width * p.x;
+        const targetY = canvasDessin.height * p.y;
+        const distance = Math.sqrt(Math.pow(x - targetX, 2) + Math.pow(y - targetY, 2));
+
+        // Si le doigt est à moins de 45 pixels du point invisible
+        if (distance < 45 && !pointsTouchesActuels.includes(index)) {
+            pointsTouchesActuels.push(index);
+
+            // OPTIONNEL : Efface visuellement l'étoile quand on la touche
+            ctxDessin.clearRect(targetX - 20, targetY - 20, 40, 40);
+        }
+    });
+}
+
+let timerVerification;
 function arreterDessin() {
+    if (!ctxDessin) return;
     if (enTrainDeDessiner && typeActuel !== 'libre') {
-        // On attend 1.5 seconde d'inactivité avant de vérifier si c'est fini
-        // Ça lui permet de lever le doigt et de le remettre pour finir sa lettre
         clearTimeout(timerVerification);
-        timerVerification = setTimeout(verifierTracerFini, 1500); 
+        timerVerification = setTimeout(verifierTracerFini, 1200); 
     }
     enTrainDeDessiner = false;
     ctxDessin.beginPath();
@@ -563,62 +629,52 @@ function arreterDessin() {
 
 function verifierTracerFini() {
     if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
+    if (!canvasDessin || !ctxDessin) return;
 
+    // 1. Calculer le remplissage (Pixels)
     const imageData = ctxDessin.getImageData(0, 0, canvasDessin.width, canvasDessin.height);
     const pixels = imageData.data;
     let pixelsColories = 0;
-
-    for (let i = 3; i < pixels.length; i += 20) { 
+    for (let i = 3; i < pixels.length; i += 25) { 
         if (pixels[i] > 100) pixelsColories++;
     }
 
-    // --- RÉGLAGE DYNAMIQUE DU SEUIL ---
+    // 2. Vérifier les points de passage
     const caractereActuel = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
-    
-    // Seuil par défaut pour les lettres larges (A, B, M, 8, etc.)
-    let seuilReussite = 2100; 
+    const pointsRequis = pointsCles[caractereActuel] ? pointsCles[caractereActuel].length : 0;
 
-    // Si c'est un caractère mince, on baisse le seuil de moitié
-    const caracteresMinces = ["I", "i", "1", "7", "L", "l", "J", "j", "T", "t", "f", "F"]
-    
-    if (caracteresMinces.includes(caractereActuel)) {
-        seuilReussite = 800; // Beaucoup plus facile pour les traits fins
-    }
-
-    if (pixelsColories > seuilReussite) { 
+    // Condition : Assez de gribouillis ET tous les points touchés
+    if (pixelsColories > 800 && pointsTouchesActuels.length >= pointsRequis) { 
         celebrerFinTracer();
     }
 }
 
 function celebrerFinTracer() {
     if (estEnTrainDeCelebrer) return;
+    if (!canvasDessin || !ctxDessin) return;
     estEnTrainDeCelebrer = true;
     
-    // Message plus générique mais correct grammaticalement
-    let messageBravo = (typeActuel === 'lettre') ? 
-        "C'est magnifique ! Tu as très bien tracé la lettre !" : 
-        "C'est magnifique ! Tu as très bien tracé le chiffre !";
-    
-    parler(messageBravo);
+    parler("C'est magnifique ! Bravo !");
 
-    // Confettis
+    // Explosion de confettis
     for (let i = 0; i < 100; i++) {
         const p = new Particule(Math.random() * window.innerWidth, Math.random() * window.innerHeight);
         p.couleur = `hsl(${Math.random() * 360}, 100%, 50%)`;
         particules.push(p);
     }
 
-    // On attend 6 secondes (plus long) avant de changer pour qu'elle admire son travail
     setTimeout(() => {
         effacerDessin(true); 
         estEnTrainDeCelebrer = false;
-    }, 6000); 
+    }, 5000); 
 }
 
-// ÉCOUTEURS D'ÉVÉNEMENTS
-canvasDessin.addEventListener('mousedown', demarrerDessin);
-canvasDessin.addEventListener('mousemove', dessiner);
+// ÉCOUTEURS
+if (canvasDessin) {
+    canvasDessin.addEventListener('mousedown', demarrerDessin);
+    canvasDessin.addEventListener('mousemove', dessiner);
+    canvasDessin.addEventListener('touchstart', (e) => { e.preventDefault(); demarrerDessin(e); }, {passive: false});
+    canvasDessin.addEventListener('touchmove', (e) => { e.preventDefault(); dessiner(e); }, {passive: false});
+}
 window.addEventListener('mouseup', arreterDessin);
-canvasDessin.addEventListener('touchstart', (e) => { e.preventDefault(); demarrerDessin(e); }, {passive: false});
-canvasDessin.addEventListener('touchmove', (e) => { e.preventDefault(); dessiner(e); }, {passive: false});
 window.addEventListener('touchend', arreterDessin);
