@@ -17,6 +17,7 @@ body {
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
+    background-attachment: fixed;
     background-color: #1a0033;
 }
 
@@ -107,10 +108,9 @@ body {
     pointer-events: none;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
-    padding: 40px 0;
+    align-items: center;
+    justify-content: flex-start;
 }
-.interface > * { pointer-events: auto; } /* Rend les boutons du menu cliquables */
 
 /* Étage 5000 : La poussière d'étoiles (Visuelle seulement) */
 #canvasParticules {
@@ -177,29 +177,28 @@ body {
    4. MENU ET BOUTONS
    ========================================================================== */
 
-/* --- L'INTERFACE (FIX POUR REMONTER LE TOUT) --- */
-.interface {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    z-index: 1000;
+
+.barre-titre {
+    width: 100%;
     display: flex;
-    flex-direction: column;
+    justify-content: center;
     align-items: center;
-    
-    /* ON CHANGE ICI : On aligne vers le haut */
-    justify-content: flex-start; 
-    
-    pointer-events: none;
-    padding-top: 40px; /* Distance du titre par rapport au haut de l'écran */
+    padding: 40px 0 20px 0;
+    position: relative;
+    pointer-events: auto;
+}
+
+.zone-menu-scroll {
+    flex: 1;
+    width: 100%;
+    overflow-y: auto;
+    pointer-events: auto;
+    padding-bottom: 50px;
 }
 
 /* Réactivation des clics */
 .interface h1, 
-.menu-boutons, 
-.controles-ecran {
+.menu-boutons {
     pointer-events: auto;
 }
 
@@ -222,13 +221,14 @@ h1 {
 /* --- LA GRILLE DE BOUTONS (menu principal) --- */
 .menu-boutons {
     display: grid;
-    grid-template-columns: repeat(2, 600px);
+    grid-template-columns: repeat(2, 500px);
     row-gap: 80px;
     column-gap: 40px;
     justify-content: center;
     align-content: center;
     pointer-events: auto;
-    margin-top: 10px;
+    margin-top: 40px;
+    padding-bottom: 40px;
 }
 
 /* LE BOUTON : Zone de clic ultra-précise (Tes valeurs sont parfaites) */
@@ -273,48 +273,26 @@ h1 {
     transform: scale(0.9);
 }
 
-/* Boutons menu sans image (ex. Tracer lettres / chiffres) */
-.menu-boutons .btn-menu-texte {
-    width: 280px;
-    height: 120px;
-    background: rgba(0, 0, 0, 0.55) !important;
-    border: 3px solid rgba(255, 215, 0, 0.5) !important;
-    border-radius: 24px;
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.45);
-}
 
-.menu-texte-bulle {
-    font-family: 'Mountains of Christmas', cursive;
-    font-size: 1.55rem;
-    color: #FFD700;
-    text-shadow: 2px 2px 0 #000;
-    line-height: 1.2;
-    text-align: center;
-    pointer-events: none;
-}
-
-/* --- LE BOUTON PLEIN ÉCRAN (RESTE EN BAS) --- */
-.controles-ecran {
-    position: fixed;
-    bottom: 30px; /* Fixé en bas de l'écran quoi qu'il arrive */
-    left: 0;
-    right: 0;
+/* --- LE BOUTON PLEIN ÉCRAN (EN HAUT À DROITE) --- */
+#btnPleinEcran {
+    position: absolute;
+    top: 40px;
+    right: 40px;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    background: rgba(49, 27, 146, 0.9);
+    border: 4px solid white;
+    color: white;
+    font-size: 40px;
+    cursor: pointer;
     display: flex;
+    align-items: center;
     justify-content: center;
     z-index: 6000;
     pointer-events: auto !important;
-}
-
-.controles-ecran button {
-    font-family: 'Mountains of Christmas', cursive;
-    background-color: rgba(0, 0, 0, 0.6) !important;
-    color: #FFD700 !important;
-    font-size: 0.9rem;
-    padding: 8px 20px;
-    border: 1px solid rgba(255, 215, 0, 0.3) !important;
-    border-radius: 30px;
-    text-transform: uppercase;
-    cursor: pointer;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
 /* ==========================================================================

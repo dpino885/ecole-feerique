@@ -11,36 +11,37 @@
     <canvas id="canvasParticules"></canvas>
 
     <div class="interface" id="menuPrincipal">
-        <h1>L'École des Étoiles</h1>
-        
-        <div class="menu-boutons">
-            <button onclick="ouvrirModule('chiffres')" class="btn-menu">
-                <img src="images/bouton-chiffres.png" alt="Chiffres" draggable="false">
-            </button>
-
-            <button onclick="ouvrirModule('alphabet')" class="btn-menu">
-                <img src="images/bouton-alphabet.png" alt="Alphabet" draggable="false">
-            </button>
-
-            <button onclick="ouvrirModule('formes')" class="btn-menu">
-                <img src="images/bouton-formes.png" alt="Formes" draggable="false">
-            </button>
-
-            <button onclick="ouvrirModule('tracerLettres')" class="btn-menu btn-menu-texte" type="button" draggable="false">
-                <span class="menu-texte-bulle">Tracer<br>les lettres</span>
-            </button>
-
-            <button onclick="ouvrirModule('tracerChiffres')" class="btn-menu btn-menu-texte" type="button" draggable="false">
-                <span class="menu-texte-bulle">Tracer<br>les chiffres</span>
-            </button>
-
-            <button onclick="ouvrirModule('dessin')" class="btn-menu">
-                <img src="images/bouton-dessin.png" alt="Dessin" draggable="false">
-            </button>
+        <div class="barre-titre">
+            <h1>L'École des Étoiles</h1>
+            <button id="btnPleinEcran" onclick="basculerPleinEcran()" title="Plein écran">🖥️</button>
         </div>
+        
+        <div class="zone-menu-scroll">
+            <div class="menu-boutons">
+                <button onclick="ouvrirModule('chiffres')" class="btn-menu">
+                    <img src="images/bouton-chiffres.png" alt="Chiffres" draggable="false">
+                </button>
 
-        <div class="controles-ecran">
-            <button id="btnPleinEcran" onclick="basculerPleinEcran()">Mode Plein Écran</button>
+                <button onclick="ouvrirModule('alphabet')" class="btn-menu">
+                    <img src="images/bouton-alphabet.png" alt="Alphabet" draggable="false">
+                </button>
+
+                <button onclick="ouvrirModule('formes')" class="btn-menu">
+                    <img src="images/bouton-formes.png" alt="Formes" draggable="false">
+                </button>
+
+                <button onclick="ouvrirModule('tracerLettres')" class="btn-menu" type="button">
+                    <img src="images/bouton-alphabet-tracer.png" alt="Tracer les lettres" draggable="false">
+                </button>
+
+                <button onclick="ouvrirModule('tracerChiffres')" class="btn-menu" type="button">
+                    <img src="images/bouton-chiffres-tracer.png" alt="Tracer les chiffres" draggable="false">
+                </button>
+
+                <button onclick="ouvrirModule('dessin')" class="btn-menu">
+                    <img src="images/bouton-dessin.png" alt="Dessin" draggable="false">
+                </button>
+            </div>
         </div>
     </div>
 
