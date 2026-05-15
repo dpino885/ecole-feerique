@@ -106,10 +106,7 @@ body {
     height: 100vh;
     z-index: 1000;
     pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    display: block; /* Changé de flex à block pour accommoder les positions fixed internes */
 }
 
 /* Étage 5000 : La poussière d'étoiles (Visuelle seulement) */
@@ -184,16 +181,22 @@ body {
     justify-content: center;
     align-items: center;
     padding: 0;
-    position: relative;
-    pointer-events: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100; /* Sous les boutons qui scrollent */
+    pointer-events: none; /* Laisse passer le scroll/clic vers les boutons */
 }
 
 .zone-menu-scroll {
-    flex: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100vh;
     overflow-y: auto;
     pointer-events: auto;
-    padding-bottom: 50px;
+    z-index: 200; /* Par dessus le titre */
 }
 
 /* Réactivation des clics */
@@ -224,8 +227,8 @@ h1 {
     justify-content: center;
     align-content: center;
     pointer-events: auto;
-    margin-top: 40px;
-    padding-bottom: 40px;
+    margin-top: 250px; /* Laisse de la place pour le titre au début */
+    padding-bottom: 100px;
 }
 
 /* LE BOUTON : Zone de clic ultra-précise (Tes valeurs sont parfaites) */
@@ -273,7 +276,7 @@ h1 {
 
 /* --- LE BOUTON PLEIN ÉCRAN (EN HAUT À DROITE) --- */
 #btnPleinEcran {
-    position: absolute;
+    position: fixed;
     top: 40px;
     right: 40px;
     width: 80px;
