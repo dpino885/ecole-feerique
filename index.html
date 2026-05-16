@@ -46,6 +46,10 @@
                 <button onclick="ouvrirModule('histoire')" class="btn-menu btn-histoire-texte">
                     <span>Histoire</span>
                 </button>
+
+                <button onclick="ouvrirModule('piano')" class="btn-menu btn-histoire-texte">
+                    <span>Piano</span>
+                </button>
             </div>
         </div>
     </div>
@@ -176,6 +180,39 @@
             <button id="btnSuivantHistoire" class="nav-btn-histoire" onclick="pageSuivante()">➡️</button>
         </div>
     </div>
+</div>
+
+<div id="modulePiano" class="module-ecran" style="display: none;">
+    <div id="selectionComptines">
+        <h2 class="titre-piano">Choisis une chanson :</h2>
+        <div class="grille-comptines" id="grilleComptines">
+            <!-- Rempli par le JS -->
+        </div>
+    </div>
+
+    <div id="clavierPiano" class="piano-container">
+        <!-- Les touches seront générées ou définies ici -->
+        <div class="touches-blanches">
+            <div class="touche blanche" data-note="C4" id="touche-C4"><span>Do</span></div>
+            <div class="touche blanche" data-note="D4" id="touche-D4"><span>Ré</span></div>
+            <div class="touche blanche" data-note="E4" id="touche-E4"><span>Mi</span></div>
+            <div class="touche blanche" data-note="F4" id="touche-F4"><span>Fa</span></div>
+            <div class="touche blanche" data-note="G4" id="touche-G4"><span>Sol</span></div>
+            <div class="touche blanche" data-note="A4" id="touche-A4"><span>La</span></div>
+            <div class="touche blanche" data-note="B4" id="touche-B4"><span>Si</span></div>
+            <div class="touche blanche" data-note="C5" id="touche-C5"><span>Do</span></div>
+        </div>
+        <div class="touches-noires">
+            <div class="touche noire" data-note="C#4" id="touche-Cs4"></div>
+            <div class="touche noire" data-note="D#4" id="touche-Ds4"></div>
+            <div class="spacer-noir"></div>
+            <div class="touche noire" data-note="F#4" id="touche-Fs4"></div>
+            <div class="touche noire" data-note="G#4" id="touche-Gs4"></div>
+            <div class="touche noire" data-note="A#4" id="touche-As4"></div>
+        </div>
+    </div>
+
+    <button class="btn-quitter-piano" onclick="quitterComptine()" id="btnQuitterComptine" style="display: none;">Arrêter la chanson</button>
 </div>
     <script src="script.js"></script> 
 </body>

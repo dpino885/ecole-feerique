@@ -103,7 +103,8 @@ const IDS_MODULES_JEU = [
     'moduleDessin',
     'moduleTracerLettres',
     'moduleTracerChiffres',
-    'moduleHistoire'
+    'moduleHistoire',
+    'modulePiano'
 ];
 
 function ouvrirModule(type, options) {
@@ -171,6 +172,11 @@ function ouvrirModule(type, options) {
         const el = document.getElementById('moduleHistoire');
         if (el) el.style.display = 'flex';
         genererSelectionHistoires();
+    } else if (type === 'piano') {
+        const el = document.getElementById('modulePiano');
+        if (el) el.style.display = 'flex';
+        initialiserPiano();
+        parler("Le piano aux étoiles ! Joue de la musique !");
     }
 }
 
@@ -919,3 +925,195 @@ brancherEvenementsCanvas(document.getElementById('canvasTracerChiffres'));
 
 window.addEventListener('mouseup', arreterDessin);
 window.addEventListener('touchend', arreterDessin);
+
+// ==========================================================================
+// 8. LOGIQUE DU MODULE PIANO
+// ==========================================================================
+const NOTES_FREQUENCES = {
+    'C4': 261.63, 'C#4': 277.18, 'D4': 293.66, 'D#4': 311.13, 'E4': 329.63,
+    'F4': 349.23, 'F#4': 369.99, 'G4': 392.00, 'G#4': 415.30, 'A4': 440.00,
+    'A#4': 466.16, 'B4': 493.88, 'C5': 523.25
+};
+
+const COMPTINES = [
+    {
+        titre: "Ah! vous dirai-je, maman",
+        notes: ["C4", "C4", "G4", "G4", "A4", "A4", "G4", "F4", "F4", "E4", "E4", "D4", "D4", "C4"]
+    },
+    {
+        titre: "Frère Jacques",
+        notes: ["C4", "D4", "E4", "C4", "C4", "D4", "E4", "C4", "E4", "F4", "G4", "E4", "F4", "G4"]
+    },
+    {
+        titre: "Au clair de la lune",
+        notes: ["C4", "C4", "C4", "D4", "E4", "D4", "C4", "E4", "D4", "D4", "C4"]
+    },
+    {
+        titre: "Une souris verte",
+        notes: ["G4", "E4", "E4", "G4", "E4", "E4", "G4", "A4", "G4", "F4", "E4", "D4"]
+    },
+    {
+        titre: "J'ai du bon tabac",
+        notes: ["C4", "D4", "E4", "C4", "D4", "D4", "D4", "C4", "D4", "E4", "C4", "D4", "D4", "C4"]
+    },
+    {
+        titre: "Dodo, l'enfant do",
+        notes: ["E4", "D4", "C4", "E4", "D4", "C4", "E4", "G4", "F4", "E4", "D4", "C4"]
+    },
+    {
+        titre: "À la volette",
+        notes: ["C4", "D4", "E4", "F4", "G4", "G4", "A4", "G4", "F4", "E4", "D4", "C4"]
+    },
+    {
+        titre: "Fais dodo",
+        notes: ["G4", "E4", "G4", "E4", "D4", "E4", "F4", "D4", "F4", "D4", "C4", "E4", "G4"]
+    },
+    {
+        titre: "Bateau sur l'eau",
+        notes: ["C4", "E4", "G4", "C5", "G4", "E4", "C4", "G4", "C4"]
+    },
+    {
+        titre: "Pomme de reinette",
+        notes: ["G4", "G4", "E4", "F4", "F4", "D4", "E4", "E4", "C4", "D4", "D4", "G4", "C4"]
+    }
+];
+
+let audioCtx = null;
+let comptineEnCours = null;
+let indexNoteAttendue = 0;
+
+function initialiserPiano() {
+    if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    }
+    comptineEnCours = null;
+    indexNoteAttendue = 0;
+
+    document.getElementById('selectionComptines').style.display = 'flex';
+    document.getElementById('clavierPiano').style.display = 'flex';
+    document.getElementById('btnQuitterComptine').style.display = 'none';
+
+    genererSelectionComptines();
+    brancherEvenementsPiano();
+}
+
+function genererSelectionComptines() {
+    const grille = document.getElementById('grilleComptines');
+    if (!grille) return;
+    grille.innerHTML = "";
+
+    COMPTINES.forEach((c, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-comptine';
+        btn.innerText = c.titre;
+        btn.onclick = () => demarrerComptine(index);
+        grille.appendChild(btn);
+    });
+}
+
+function demarrerComptine(index) {
+    comptineEnCours = COMPTINES[index];
+    indexNoteAttendue = 0;
+    document.getElementById('selectionComptines').style.display = 'none';
+    document.getElementById('btnQuitterComptine').style.display = 'block';
+
+    parler("C'est parti ! Suis l'étoile !");
+    montrerNoteSuivante();
+}
+
+function quitterComptine() {
+    comptineEnCours = null;
+    indexNoteAttendue = 0;
+    document.getElementById('selectionComptines').style.display = 'flex';
+    document.getElementById('btnQuitterComptine').style.display = 'none';
+
+    // Nettoyer les guides
+    document.querySelectorAll('.touche').forEach(t => t.classList.remove('guide'));
+}
+
+function montrerNoteSuivante() {
+    // Retirer le guide précédent
+    document.querySelectorAll('.touche').forEach(t => t.classList.remove('guide'));
+
+    if (comptineEnCours && indexNoteAttendue < comptineEnCours.notes.length) {
+        const note = comptineEnCours.notes[indexNoteAttendue];
+        const idTouche = "touche-" + note.replace("#", "s");
+        const el = document.getElementById(idTouche);
+        if (el) el.classList.add('guide');
+    } else if (comptineEnCours) {
+        // Fin de la comptine
+        parler("Bravo ! Tu as joué toute la chanson !");
+        celebrerFinTracer(); // Réutiliser la célébration existante
+        quitterComptine();
+    }
+}
+
+function jouerNote(note, estManuel = true) {
+    if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if (audioCtx.state === 'suspended') audioCtx.resume();
+
+    const freq = NOTES_FREQUENCES[note];
+    if (!freq) return;
+
+    const osc = audioCtx.createOscillator();
+    const gain = audioCtx.createGain();
+
+    osc.type = 'triangle'; // Son plus doux que 'sine' ou 'square'
+    osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+    gain.gain.setValueAtTime(0.5, audioCtx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 1);
+
+    osc.connect(gain);
+    gain.connect(audioCtx.destination);
+
+    osc.start();
+    osc.stop(audioCtx.currentTime + 1);
+
+    // Feedback visuel (étoiles)
+    const idTouche = "touche-" + note.replace("#", "s");
+    const el = document.getElementById(idTouche);
+    if (el) {
+        el.classList.add('active');
+        setTimeout(() => el.classList.remove('active'), 200);
+
+        const rect = el.getBoundingClientRect();
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+
+        // Créer une étoile lumineuse DOM
+        const etoile = document.createElement('div');
+        etoile.className = 'etoile-piano';
+        etoile.innerHTML = '⭐';
+        etoile.style.left = centerX + 'px';
+        etoile.style.top = centerY + 'px';
+        document.body.appendChild(etoile);
+        setTimeout(() => etoile.remove(), 1000);
+
+        for (let i = 0; i < 5; i++) {
+            const p = new Particule(centerX, centerY);
+            p.couleur = "#ffd700";
+            particules.push(p);
+        }
+    }
+
+    // Si on est en mode comptine
+    if (estManuel && comptineEnCours) {
+        const noteAttendue = comptineEnCours.notes[indexNoteAttendue];
+        if (note === noteAttendue) {
+            indexNoteAttendue++;
+            montrerNoteSuivante();
+        }
+    }
+}
+
+function brancherEvenementsPiano() {
+    document.querySelectorAll('.touche').forEach(touche => {
+        // Éviter les branchements multiples
+        touche.onclick = null;
+        touche.onclick = (e) => {
+            const note = touche.getAttribute('data-note');
+            jouerNote(note);
+        };
+    });
+}
