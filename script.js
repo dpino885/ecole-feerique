@@ -141,7 +141,6 @@ function ouvrirModule(type, options) {
         const btnRetourGlobal = document.getElementById('btnRetourGlobal');
         if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
         typeActuel = 'libre';
-        if (configDessin.fantome) configDessin.fantome.innerText = '';
         effacerDessin(false);
         initialiserDessin();
         parler("Dessine avec tes doigts magiques !");
@@ -149,6 +148,8 @@ function ouvrirModule(type, options) {
         bindDessinSurface(SURFACE_LETTRES);
         const el = document.getElementById('moduleTracerLettres');
         if (el) el.style.display = 'flex';
+        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
+        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
         typeActuel = 'lettre';
         const lettre = options.lettre;
         if (lettre && modelesLettres.indexOf(lettre) !== -1) {
@@ -163,6 +164,8 @@ function ouvrirModule(type, options) {
         bindDessinSurface(SURFACE_CHIFFRES);
         const el = document.getElementById('moduleTracerChiffres');
         if (el) el.style.display = 'flex';
+        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
+        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
         typeActuel = 'chiffre';
         indexModeleActuel = 0;
         initialiserDessin();
@@ -536,28 +539,24 @@ function apparaitreFeeGeante() {
 const SURFACE_LIBRE = {
     moduleId: 'moduleDessin',
     canvasId: 'canvasDessin',
-    conteneurId: 'conteneurCanevas',
-    fantomeId: 'modeleFantome'
+    conteneurId: 'conteneurCanevas'
 };
 const SURFACE_LETTRES = {
     moduleId: 'moduleTracerLettres',
     canvasId: 'canvasTracerLettres',
-    conteneurId: 'conteneurTracerLettres',
-    fantomeId: 'modeleFantomeLettres'
+    conteneurId: 'conteneurTracerLettres'
 };
 const SURFACE_CHIFFRES = {
     moduleId: 'moduleTracerChiffres',
     canvasId: 'canvasTracerChiffres',
-    conteneurId: 'conteneurTracerChiffres',
-    fantomeId: 'modeleFantomeChiffres'
+    conteneurId: 'conteneurTracerChiffres'
 };
 
 const configDessin = {
     moduleEl: null,
     canvas: null,
     ctx: null,
-    conteneur: null,
-    fantome: null
+    conteneur: null
 };
 
 function bindDessinSurface(spec) {
@@ -567,7 +566,6 @@ function bindDessinSurface(spec) {
         ? configDessin.canvas.getContext('2d', { willReadFrequently: true })
         : null;
     configDessin.conteneur = document.getElementById(spec.conteneurId);
-    configDessin.fantome = document.getElementById(spec.fantomeId);
 }
 
 let dernierCanvasDessin = null;
@@ -616,6 +614,10 @@ function initialiserDessin() {
     ctx.lineWidth = 25; // Tracé un peu plus épais pour faciliter le remplissage
 
     if (moduleEl) moduleEl.style.zIndex = '500';
+
+    if (typeActuel !== 'libre') {
+        dessinerFantome();
+    }
 }
 
 function changerCouleur(c) { 
@@ -636,27 +638,47 @@ function effacerDessin(changerDeLettre = true) {
             indexModeleActuel = (indexModeleActuel + 1) % modelesChiffres.length;
         }
         afficherNouveauModele();
+    } else if (typeActuel !== 'libre') {
+        dessinerFantome();
     }
 }
 
-function afficherNouveauModele() {
-    const afficheur = configDessin.fantome;
-    if (!afficheur) return;
+let caractereActuel = '';
 
+function afficherNouveauModele() {
     secteursTouches.clear();
     let caractere =
         typeActuel === 'lettre'
             ? modelesLettres[indexModeleActuel]
             : modelesChiffres[indexModeleActuel];
-    afficheur.innerText = caractere;
+
+    caractereActuel = caractere;
 
     genererMasqueEtSecteurs(caractere);
+    dessinerFantome();
 
     let texte =
         typeActuel === 'lettre'
             ? 'la lettre ' + caractere.toLowerCase()
             : 'le chiffre ' + caractere;
     parler('Essaie de tracer ' + texte);
+}
+
+function dessinerFantome() {
+    const { canvas, ctx } = configDessin;
+    if (!canvas || !ctx || typeActuel === 'libre') return;
+
+    ctx.save();
+    ctx.fillStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+    ctx.font = "500px 'Arial Black', sans-serif";
+
+    const xMid = canvas.width / 2;
+    const yMid = canvas.height / 2;
+
+    ctx.fillText(caractereActuel, xMid, yMid);
+    ctx.restore();
 }
 
 function genererMasqueEtSecteurs(caractere) {
@@ -668,17 +690,18 @@ function genererMasqueEtSecteurs(caractere) {
     canvasMasque.height = canvas.height;
 
     // 1. Préparer le masque (on dessine la lettre en blanc sur fond noir)
+    ctxMasque.save();
     ctxMasque.fillStyle = "black";
     ctxMasque.fillRect(0, 0, canvasMasque.width, canvasMasque.height);
 
     ctxMasque.fillStyle = "white";
     ctxMasque.strokeStyle = "white";
-    ctxMasque.lineWidth = 50; // Contour pour être permissif sur le tracé (environ 25px de chaque côté)
+    ctxMasque.lineWidth = 40; // Un peu moins permissif pour mieux coller au fantôme
     ctxMasque.lineJoin = "round";
     ctxMasque.textAlign = "center";
     ctxMasque.textBaseline = "middle";
 
-    // On fait correspondre la police du fantôme CSS
+    // On fait correspondre la police
     ctxMasque.font = "500px 'Arial Black', sans-serif";
 
     const xMid = canvasMasque.width / 2;
@@ -687,6 +710,7 @@ function genererMasqueEtSecteurs(caractere) {
     // On dessine le corps et le contour pour élargir la zone valide (plus facile pour l'enfant)
     ctxMasque.strokeText(caractere, xMid, yMid);
     ctxMasque.fillText(caractere, xMid, yMid);
+    ctxMasque.restore();
 
     // 2. Analyser les secteurs actifs (grille invisible pour vérifier la complétion)
     secteursActifs = [];
@@ -772,10 +796,10 @@ function arreterDessin() {
 function verifierTracerFini() {
     if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
 
-    // Condition : Avoir parcouru au moins 85% des secteurs actifs de la lettre
+    // Condition : Avoir parcouru au moins 10% des secteurs actifs de la lettre
     const ratioRemplissage = secteursTouches.size / secteursActifs.length;
 
-    if (ratioRemplissage > 0.85) {
+    if (ratioRemplissage > 0.10) {
         celebrerFinTracer();
     }
 }
