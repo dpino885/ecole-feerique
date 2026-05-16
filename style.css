@@ -436,21 +436,6 @@ h1 {
     justify-content: center;
 }
 
-/* --- BOUTON HISTOIRE TEXTE (PROVISOIRE) --- */
-.btn-histoire-texte, .btn-memory-texte {
-    background: linear-gradient(135deg, #6a1b9a, #4a148c) !important;
-    border: 4px solid white !important;
-    border-radius: 20px !important;
-    color: white !important;
-    font-size: 24px !important;
-    font-weight: bold !important;
-    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
-    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
-}
-
-.btn-histoire-texte:active, .btn-memory-texte:active {
-    transform: scale(0.95);
-}
 
 /* ==========================================================================
    6. MODULE ALPHABET (MODE SÉQUENTIEL)
