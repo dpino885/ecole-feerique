@@ -50,6 +50,10 @@
                 <button onclick="ouvrirModule('histoire')" class="btn-menu btn-histoire-texte">
                     <span>Histoire</span>
                 </button>
+
+                <button onclick="ouvrirModule('piano')" class="btn-menu">
+                    <img src="images/bouton-piano.png" alt="Le Piano aux Étoiles" draggable="false">
+                </button>
             </div>
         </div>
     </div>
@@ -191,6 +195,29 @@
     </div>
     <div id="grilleMemory"></div>
 </div>
+
+    <div id="modulePiano" class="module-ecran" style="display: none;">
+        <button class="btn-retour-piano" onclick="retourMenuPiano()" aria-label="Retour au menu">🏠</button>
+
+        <div id="interfacePiano">
+            <button id="btnListeComptines" onclick="ouvrirListeComptines()">🎵 Chansons</button>
+            <h2 id="titreComptine">Mode Libre</h2>
+        </div>
+
+        <div id="conteneurClavier">
+            <div id="clavierPiano">
+                <!-- Les touches seront générées ici pour plus de flexibilité -->
+            </div>
+        </div>
+
+        <div id="overlayComptines" style="display: none;">
+            <div class="fenetre-comptines">
+                <button onclick="fermerListeComptines()" class="btn-fermer-comptines">✖</button>
+                <h3>Choisis une chanson</h3>
+                <div id="grilleComptines"></div>
+            </div>
+        </div>
+    </div>
 
     <script src="script.js"></script> 
 </body>
