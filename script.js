@@ -634,8 +634,22 @@ let estEnTrainDeCelebrer = false;
 
 const modelesLettres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const modelesChiffres = "0123456789".split("");
+
+// Seuils de complétion par caractère (pourcentage de la forme à couvrir)
+const SEUILS_TRACER = {
+    // Simple (10%)
+    'I': 0.10, 'J': 0.10, 'L': 0.10, '1': 0.10, '7': 0.10,
+    // Moyen (30%)
+    'C': 0.30, 'F': 0.30, 'O': 0.30, 'P': 0.30, 'T': 0.30, 'U': 0.30, 'V': 0.30, 'Y': 0.30, 'Z': 0.30,
+    '0': 0.30, '2': 0.30, '3': 0.30, '4': 0.30, '5': 0.30,
+    // Complexe (50%)
+    'A': 0.50, 'B': 0.50, 'D': 0.50, 'E': 0.50, 'G': 0.50, 'H': 0.50, 'K': 0.50, 'M': 0.50, 'N': 0.50,
+    'Q': 0.50, 'R': 0.50, 'S': 0.50, 'W': 0.50, 'X': 0.50, '6': 0.50, '8': 0.50, '9': 0.50
+};
+
 let indexModeleActuel = 0;
 let typeActuel = 'libre';
+let caractereActuel = '';
 
 // --- NOUVEAU SYSTÈME DE TRACÉ PAR MASQUE ET SECTEURS ---
 const canvasMasque = document.createElement('canvas');
@@ -687,8 +701,6 @@ function effacerDessin(changerDeLettre = true) {
         dessinerFantome();
     }
 }
-
-let caractereActuel = '';
 
 function afficherNouveauModele() {
     secteursTouches.clear();
@@ -841,10 +853,11 @@ function arreterDessin() {
 function verifierTracerFini() {
     if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
 
-    // Condition : Avoir parcouru au moins 10% des secteurs actifs de la lettre
+    // Récupérer le seuil spécifique au caractère ou 25% par défaut
+    const seuilReussite = SEUILS_TRACER[caractereActuel] || 0.25;
     const ratioRemplissage = secteursTouches.size / secteursActifs.length;
 
-    if (ratioRemplissage > 0.10) {
+    if (ratioRemplissage > seuilReussite) {
         celebrerFinTracer();
     }
 }
