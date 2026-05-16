@@ -43,6 +43,10 @@
                     <img src="images/bouton-dessin.png" alt="Dessin" draggable="false">
                 </button>
 
+                <button onclick="ouvrirModule('memory')" class="btn-menu btn-memory-texte">
+                    <span>Memory</span>
+                </button>
+
                 <button onclick="ouvrirModule('histoire')" class="btn-menu btn-histoire-texte">
                     <span>Histoire</span>
                 </button>
@@ -177,6 +181,20 @@
         </div>
     </div>
 </div>
+
+<div id="moduleMemory" class="module-ecran" style="display: none;">
+    <button class="btn-retour-memory" onclick="retourMenu()" aria-label="Retour au menu">🏠</button>
+    <div id="interfaceMemory">
+        <div class="selection-difficulte">
+            <button onclick="changerDifficulteMemory('facile')">Facile</button>
+            <button onclick="changerDifficulteMemory('normal')">Normal</button>
+            <button onclick="changerDifficulteMemory('difficile')">Difficile</button>
+        </div>
+        <h2 id="infoMemory">Niveau : Facile</h2>
+    </div>
+    <div id="grilleMemory"></div>
+</div>
+
     <script src="script.js"></script> 
 </body>
 </html>
