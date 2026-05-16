@@ -102,7 +102,8 @@ const IDS_MODULES_JEU = [
     'moduleFormes',
     'moduleDessin',
     'moduleTracerLettres',
-    'moduleTracerChiffres'
+    'moduleTracerChiffres',
+    'moduleHistoire'
 ];
 
 function ouvrirModule(type, options) {
@@ -166,6 +167,10 @@ function ouvrirModule(type, options) {
         initialiserDessin();
         effacerDessin(false);
         afficherNouveauModele();
+    } else if (type === 'histoire') {
+        const el = document.getElementById('moduleHistoire');
+        if (el) el.style.display = 'flex';
+        genererSelectionHistoires();
     }
 }
 
@@ -582,16 +587,12 @@ const modelesChiffres = "0123456789".split("");
 let indexModeleActuel = 0;
 let typeActuel = 'libre';
 
-// --- NOUVEAU : BASE DE DONNÉES DES POINTS DE PASSAGE ---
-// x: 0.5 est le milieu horizontal, y: 0.5 est le milieu vertical
-const pointsCles = {
-    "1": [{x: 0.5, y: 0.2}, {x: 0.5, y: 0.5}, {x: 0.5, y: 0.8}],
-    "2": [{x: 0.35, y: 0.3}, {x: 0.65, y: 0.3}, {x: 0.5, y: 0.5}, {x: 0.35, y: 0.8}, {x: 0.65, y: 0.8}],
-    "3": [{x: 0.35, y: 0.25}, {x: 0.65, y: 0.25}, {x: 0.5, y: 0.5}, {x: 0.65, y: 0.75}, {x: 0.35, y: 0.75}],
-    "A": [{x: 0.5, y: 0.2}, {x: 0.3, y: 0.8}, {x: 0.7, y: 0.8}, {x: 0.4, y: 0.5}, {x: 0.6, y: 0.5}],
-    "B": [{x: 0.35, y: 0.2}, {x: 0.35, y: 0.8}, {x: 0.65, y: 0.35}, {x: 0.35, y: 0.5}, {x: 0.65, y: 0.65}]
-};
-let pointsTouchesActuels = [];
+// --- NOUVEAU SYSTÈME DE TRACÉ PAR MASQUE ET SECTEURS ---
+const canvasMasque = document.createElement('canvas');
+const ctxMasque = canvasMasque.getContext('2d', { willReadFrequently: true });
+let secteursActifs = []; // Secteurs qui contiennent une partie de la lettre
+let secteursTouches = new Set(); // Secteurs déjà parcourus par l'enfant
+const NB_SECTEURS = 15; // Précision de la grille (15x15)
 
 function initialiserDessin() {
     const { canvas, ctx, conteneur, moduleEl } = configDessin;
@@ -599,9 +600,13 @@ function initialiserDessin() {
     canvas.width = conteneur.clientWidth;
     canvas.height = conteneur.clientHeight;
 
+    // Synchroniser le masque
+    canvasMasque.width = canvas.width;
+    canvasMasque.height = canvas.height;
+
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.lineWidth = 20;
+    ctx.lineWidth = 25; // Tracé un peu plus épais pour faciliter le remplissage
 
     if (moduleEl) moduleEl.style.zIndex = '500';
 }
@@ -615,7 +620,7 @@ function effacerDessin(changerDeLettre = true) {
     const { canvas, ctx } = configDessin;
     if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    pointsTouchesActuels = [];
+    secteursTouches.clear();
 
     if (typeActuel !== 'libre' && changerDeLettre) {
         if (typeActuel === 'lettre') {
@@ -631,14 +636,14 @@ function afficherNouveauModele() {
     const afficheur = configDessin.fantome;
     if (!afficheur) return;
 
-    pointsTouchesActuels = [];
+    secteursTouches.clear();
     let caractere =
         typeActuel === 'lettre'
             ? modelesLettres[indexModeleActuel]
             : modelesChiffres[indexModeleActuel];
     afficheur.innerText = caractere;
 
-    dessinerEtoilesGuides(caractere);
+    genererMasqueEtSecteurs(caractere);
 
     let texte =
         typeActuel === 'lettre'
@@ -647,25 +652,51 @@ function afficherNouveauModele() {
     parler('Essaie de tracer ' + texte);
 }
 
-function dessinerEtoilesGuides(caractere) {
-    const { canvas, ctx } = configDessin;
-    if (!canvas || !ctx) return;
-    const points = pointsCles[caractere];
-    if (!points) return;
+function genererMasqueEtSecteurs(caractere) {
+    const { canvas } = configDessin;
+    if (!canvas || !ctxMasque) return;
 
-    points.forEach((p) => {
-        const targetX = canvas.width * p.x;
-        const targetY = canvas.height * p.y;
+    // S'assurer que le masque a la même taille que le canvas principal
+    canvasMasque.width = canvas.width;
+    canvasMasque.height = canvas.height;
 
-        ctx.fillStyle = 'rgba(255, 215, 0, 0.6)';
-        ctx.beginPath();
-        ctx.arc(targetX, targetY, 12, 0, Math.PI * 2);
-        ctx.fill();
+    // 1. Préparer le masque (on dessine la lettre en blanc sur fond noir)
+    ctxMasque.fillStyle = "black";
+    ctxMasque.fillRect(0, 0, canvasMasque.width, canvasMasque.height);
 
-        ctx.strokeStyle = 'white';
-        ctx.lineWidth = 2;
-        ctx.stroke();
-    });
+    ctxMasque.fillStyle = "white";
+    ctxMasque.strokeStyle = "white";
+    ctxMasque.lineWidth = 50; // Contour pour être permissif sur le tracé (environ 25px de chaque côté)
+    ctxMasque.lineJoin = "round";
+    ctxMasque.textAlign = "center";
+    ctxMasque.textBaseline = "middle";
+
+    // On fait correspondre la police du fantôme CSS
+    ctxMasque.font = "500px 'Arial Black', sans-serif";
+
+    const xMid = canvasMasque.width / 2;
+    const yMid = canvasMasque.height / 2;
+
+    // On dessine le corps et le contour pour élargir la zone valide (plus facile pour l'enfant)
+    ctxMasque.strokeText(caractere, xMid, yMid);
+    ctxMasque.fillText(caractere, xMid, yMid);
+
+    // 2. Analyser les secteurs actifs (grille invisible pour vérifier la complétion)
+    secteursActifs = [];
+    const stepX = canvas.width / NB_SECTEURS;
+    const stepY = canvas.height / NB_SECTEURS;
+
+    for (let iy = 0; iy < NB_SECTEURS; iy++) {
+        for (let ix = 0; ix < NB_SECTEURS; ix++) {
+            const x = ix * stepX;
+            const y = iy * stepY;
+            // On vérifie si le centre du secteur est dans la zone blanche du masque
+            const data = ctxMasque.getImageData(Math.floor(x + stepX/2), Math.floor(y + stepY/2), 1, 1).data;
+            if (data[0] > 100) {
+                secteursActifs.push(iy * NB_SECTEURS + ix);
+            }
+        }
+    }
 }
 
 // --- GESTION DU TRACÉ ---
@@ -687,9 +718,25 @@ function dessiner(e) {
     let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
     let y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
 
-    verifierPointsCles(x, y);
+    if (typeActuel !== 'libre') {
+        const data = ctxMasque.getImageData(x, y, 1, 1).data;
+        const estDansLaLettre = data[0] > 128;
 
-    ctx.strokeStyle = couleurActuelle;
+        if (estDansLaLettre) {
+            ctx.strokeStyle = couleurActuelle;
+            const ix = Math.floor(x / (canvas.width / NB_SECTEURS));
+            const iy = Math.floor(y / (canvas.height / NB_SECTEURS));
+            const idSecteur = iy * NB_SECTEURS + ix;
+            if (secteursActifs.includes(idSecteur)) {
+                secteursTouches.add(idSecteur);
+            }
+        } else {
+            ctx.strokeStyle = "red";
+        }
+    } else {
+        ctx.strokeStyle = couleurActuelle;
+    }
+
     ctx.lineTo(x, y);
     ctx.stroke();
     ctx.beginPath();
@@ -697,31 +744,9 @@ function dessiner(e) {
 
     for (let i = 0; i < 2; i++) {
         let p = new Particule(x + rect.left, y + rect.top);
-        p.couleur = couleurActuelle;
+        p.couleur = ctx.strokeStyle === "red" ? "red" : couleurActuelle;
         particules.push(p);
     }
-}
-
-function verifierPointsCles(x, y) {
-    const { canvas, ctx } = configDessin;
-    if (!canvas || !ctx) return;
-    const caractere =
-        typeActuel === 'lettre'
-            ? modelesLettres[indexModeleActuel]
-            : modelesChiffres[indexModeleActuel];
-    const points = pointsCles[caractere];
-    if (!points) return;
-
-    points.forEach((p, index) => {
-        const targetX = canvas.width * p.x;
-        const targetY = canvas.height * p.y;
-        const distance = Math.sqrt(Math.pow(x - targetX, 2) + Math.pow(y - targetY, 2));
-
-        if (distance < 45 && !pointsTouchesActuels.includes(index)) {
-            pointsTouchesActuels.push(index);
-            ctx.clearRect(targetX - 20, targetY - 20, 40, 40);
-        }
-    });
 }
 
 let timerVerification;
@@ -739,22 +764,11 @@ function arreterDessin() {
 
 function verifierTracerFini() {
     if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
-    const { canvas, ctx } = configDessin;
-    if (!canvas || !ctx) return;
 
-    const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-    const pixels = imageData.data;
-    let pixelsColories = 0;
-    for (let i = 3; i < pixels.length; i += 25) { 
-        if (pixels[i] > 100) pixelsColories++;
-    }
+    // Condition : Avoir parcouru au moins 85% des secteurs actifs de la lettre
+    const ratioRemplissage = secteursTouches.size / secteursActifs.length;
 
-    // 2. Vérifier les points de passage
-    const caractereActuel = (typeActuel === 'lettre') ? modelesLettres[indexModeleActuel] : modelesChiffres[indexModeleActuel];
-    const pointsRequis = pointsCles[caractereActuel] ? pointsCles[caractereActuel].length : 0;
-
-    // Condition : Assez de gribouillis ET tous les points touchés
-    if (pixelsColories > 800 && pointsTouchesActuels.length >= pointsRequis) {
+    if (ratioRemplissage > 0.85) {
         celebrerFinTracer();
     }
 }
@@ -778,6 +792,103 @@ function celebrerFinTracer() {
         effacerDessin(true); 
         estEnTrainDeCelebrer = false;
     }, 5000); 
+}
+
+// ==========================================================================
+// 7. LOGIQUE DU MODULE HISTOIRE
+// ==========================================================================
+const baseHistoires = [
+    {
+        titre: "L'Aventure 1",
+        pages: [
+            "images/histoire1.1.png",
+            "images/histoire1.2.png",
+            "images/histoire1.3.png",
+            "images/histoire1.4.png",
+            "images/histoire1.5.png",
+            "images/histoire1.6.png"
+        ]
+    },
+    { titre: "Histoire 2", pages: [] },
+    { titre: "Histoire 3", pages: [] },
+    { titre: "Histoire 4", pages: [] },
+    { titre: "Histoire 5", pages: [] },
+    { titre: "Histoire 6", pages: [] }
+];
+
+let histoireActuelle = null;
+let pageActuelle = 0;
+
+function genererSelectionHistoires() {
+    const grille = document.getElementById('grilleLivres');
+    if (!grille) return;
+    grille.innerHTML = "";
+
+    baseHistoires.forEach((histoire, index) => {
+        const btn = document.createElement('button');
+        btn.className = 'btn-livre';
+        btn.innerHTML = `📖`; // On peut mettre l'index ou un titre plus tard
+        btn.onclick = () => ouvrirHistoire(index);
+        grille.appendChild(btn);
+    });
+
+    document.getElementById('selectionHistoires').style.display = 'flex';
+    document.getElementById('lecteurHistoire').style.display = 'none';
+}
+
+function ouvrirHistoire(index) {
+    histoireActuelle = baseHistoires[index];
+    if (!histoireActuelle || histoireActuelle.pages.length === 0) {
+        parler("Cette histoire n'est pas encore prête !");
+        return;
+    }
+
+    pageActuelle = 0;
+    document.getElementById('selectionHistoires').style.display = 'none';
+    document.getElementById('lecteurHistoire').style.display = 'flex';
+    document.getElementById('btnRetourGlobal').style.display = 'none';
+
+    afficherPage();
+}
+
+function afficherPage() {
+    const img = document.getElementById('imageHistoire');
+    const fin = document.getElementById('ecranFinHistoire');
+    const btnPrecedent = document.getElementById('btnPrecedentHistoire');
+    const btnSuivant = document.getElementById('btnSuivantHistoire');
+
+    if (pageActuelle < histoireActuelle.pages.length) {
+        img.src = histoireActuelle.pages[pageActuelle];
+        img.style.display = 'block';
+        fin.style.display = 'none';
+    } else {
+        img.style.display = 'none';
+        fin.style.display = 'flex';
+    }
+
+    btnPrecedent.disabled = (pageActuelle === 0);
+    // On permet d'aller une page au-delà de la dernière image pour voir l'écran "FIN"
+    btnSuivant.disabled = (pageActuelle > histoireActuelle.pages.length - 1);
+}
+
+function pageSuivante() {
+    if (pageActuelle <= histoireActuelle.pages.length - 1) {
+        pageActuelle++;
+        afficherPage();
+    }
+}
+
+function pagePrecedente() {
+    if (pageActuelle > 0) {
+        pageActuelle--;
+        afficherPage();
+    }
+}
+
+function quitterHistoire() {
+    document.getElementById('lecteurHistoire').style.display = 'none';
+    document.getElementById('selectionHistoires').style.display = 'flex';
+    document.getElementById('btnRetourGlobal').style.display = 'flex';
 }
 
 function brancherEvenementsCanvas(canvas) {

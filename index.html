@@ -11,9 +11,9 @@
     <canvas id="canvasParticules"></canvas>
 
     <div class="interface" id="menuPrincipal">
+        <button id="btnPleinEcran" onclick="basculerPleinEcran()" title="Plein écran">🖥️</button>
         <div class="barre-titre">
             <h1><img src="images/titre.png" alt="L'École Féérique" class="titre-image"></h1>
-            <button id="btnPleinEcran" onclick="basculerPleinEcran()" title="Plein écran">🖥️</button>
         </div>
         
         <div class="zone-menu-scroll">
@@ -41,6 +41,10 @@
 
                 <button onclick="ouvrirModule('dessin')" class="btn-menu">
                     <img src="images/bouton-dessin.png" alt="Dessin" draggable="false">
+                </button>
+
+                <button onclick="ouvrirModule('histoire')" class="btn-menu btn-histoire-texte">
+                    <span>Histoire</span>
                 </button>
             </div>
         </div>
@@ -149,6 +153,28 @@
             <button class="pastille-laterale btn-poubelle" onclick="effacerDessin()">🗑️</button>
         </div>
 
+    </div>
+</div>
+
+<div id="moduleHistoire" class="module-ecran" style="display: none;">
+    <div id="selectionHistoires">
+        <div class="grille-livres" id="grilleLivres"></div>
+    </div>
+
+    <div id="lecteurHistoire" style="display: none;">
+        <button class="btn-fermer-histoire" onclick="quitterHistoire()">✖</button>
+
+        <div class="zone-page">
+            <img id="imageHistoire" src="" alt="Page de l'histoire">
+            <div id="ecranFinHistoire" class="ecran-noir-fin" style="display: none;">
+                <span>FIN</span>
+            </div>
+        </div>
+
+        <div class="navigation-histoire">
+            <button id="btnPrecedentHistoire" class="nav-btn-histoire" onclick="pagePrecedente()">⬅️</button>
+            <button id="btnSuivantHistoire" class="nav-btn-histoire" onclick="pageSuivante()">➡️</button>
+        </div>
     </div>
 </div>
     <script src="script.js"></script> 

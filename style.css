@@ -106,10 +106,7 @@ body {
     height: 100vh;
     z-index: 1000;
     pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
+    display: block; /* Changé de flex à block pour accommoder les positions fixed internes */
 }
 
 /* Étage 5000 : La poussière d'étoiles (Visuelle seulement) */
@@ -184,16 +181,22 @@ body {
     justify-content: center;
     align-items: center;
     padding: 0;
-    position: relative;
-    pointer-events: auto;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100; /* Sous les boutons qui scrollent */
+    pointer-events: none; /* Laisse passer le scroll/clic vers les boutons */
 }
 
 .zone-menu-scroll {
-    flex: 1;
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 100%;
+    height: 100vh;
     overflow-y: auto;
     pointer-events: auto;
-    padding-bottom: 50px;
+    z-index: 200; /* Par dessus le titre */
 }
 
 /* Réactivation des clics */
@@ -224,8 +227,8 @@ h1 {
     justify-content: center;
     align-content: center;
     pointer-events: auto;
-    margin-top: 40px;
-    padding-bottom: 40px;
+    margin-top: 250px; /* Laisse de la place pour le titre au début */
+    padding-bottom: 100px;
 }
 
 /* LE BOUTON : Zone de clic ultra-précise (Tes valeurs sont parfaites) */
@@ -273,7 +276,7 @@ h1 {
 
 /* --- LE BOUTON PLEIN ÉCRAN (EN HAUT À DROITE) --- */
 #btnPleinEcran {
-    position: absolute;
+    position: fixed;
     top: 40px;
     right: 40px;
     width: 80px;
@@ -445,6 +448,23 @@ h1 {
     align-items: center;
     justify-content: center;
 }
+
+/* --- BOUTON HISTOIRE TEXTE (PROVISOIRE) --- */
+.btn-histoire-texte {
+    background: linear-gradient(135deg, #6a1b9a, #4a148c) !important;
+    border: 4px solid white !important;
+    border-radius: 20px !important;
+    color: white !important;
+    font-size: 24px !important;
+    font-weight: bold !important;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+}
+
+.btn-histoire-texte:active {
+    transform: scale(0.95);
+}
+
 /* ==========================================================================
    6. MODULE ALPHABET (MODE SÉQUENTIEL)
    ========================================================================== */
@@ -749,3 +769,156 @@ h1 {
     margin-top: 20px;
 }
 
+/* ==========================================================================
+   8. MODULE HISTOIRE
+   ========================================================================== */
+#moduleHistoire {
+    z-index: 9500;
+}
+
+#selectionHistoires {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.grille-livres {
+    display: grid;
+    grid-template-columns: repeat(3, 200px);
+    gap: 60px;
+    justify-content: center;
+}
+
+/* STYLE CSS DES LIVRES */
+.btn-livre {
+    width: 180px;
+    height: 240px;
+    background: #8d6e63;
+    border: 4px solid #5d4037;
+    border-radius: 10px 20px 20px 10px;
+    position: relative;
+    cursor: pointer;
+    box-shadow: 10px 10px 20px rgba(0,0,0,0.5);
+    transition: transform 0.3s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 60px;
+    pointer-events: auto;
+}
+
+.btn-livre::before {
+    content: "";
+    position: absolute;
+    left: 15px;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background: rgba(0,0,0,0.2);
+    box-shadow: 2px 0 5px rgba(0,0,0,0.1);
+}
+
+.btn-livre:hover {
+    transform: scale(1.05) rotate(2deg);
+}
+
+/* LECTEUR D'HISTOIRE */
+#lecteurHistoire {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.95);
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    pointer-events: auto;
+}
+
+.zone-page {
+    width: 90vw;
+    height: 80vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+}
+
+#imageHistoire {
+    max-width: 100%;
+    max-height: 100%;
+    border: 5px solid white;
+    border-radius: 10px;
+    box-shadow: 0 0 30px rgba(0,0,0,0.8);
+}
+
+.ecran-noir-fin {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 100px;
+    font-weight: bold;
+    border-radius: 10px;
+}
+
+.navigation-histoire {
+    margin-top: 20px;
+    display: flex;
+    gap: 100px;
+}
+
+.nav-btn-histoire {
+    width: 100px;
+    height: 100px;
+    font-size: 50px;
+    background: rgba(255,255,255,0.2);
+    border: 3px solid white;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background 0.2s;
+}
+
+.nav-btn-histoire:active {
+    background: rgba(255,255,255,0.4);
+}
+
+.nav-btn-histoire:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
+}
+
+.btn-fermer-histoire {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    width: 60px;
+    height: 60px;
+    background: #f44336;
+    color: white;
+    border: 3px solid white;
+    border-radius: 50%;
+    font-size: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 11000;
+}
