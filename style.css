@@ -1035,3 +1035,216 @@ h1 {
 #grilleMemory.grille-difficile .carte-face {
     font-size: 2.5rem;
 }
+
+/* ==========================================================================
+   10. MODULE PIANO
+   ========================================================================== */
+#modulePiano {
+    flex-direction: column;
+    justify-content: space-between;
+    padding-bottom: 5vh;
+    background: rgba(0, 0, 0, 0.4) !important;
+    pointer-events: auto !important;
+}
+
+.btn-retour-piano {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 70px;
+    height: 70px;
+    font-size: 35px;
+    background: #311b92;
+    border: 3px solid white;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    pointer-events: auto;
+}
+
+#interfacePiano {
+    margin-top: 20px;
+    text-align: center;
+    width: 100%;
+}
+
+#btnListeComptines {
+    padding: 15px 30px;
+    font-size: 1.5rem;
+    border-radius: 25px;
+    border: 3px solid white;
+    background: #ff9800;
+    color: white;
+    cursor: pointer;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+#titreComptine {
+    font-size: 2.5rem;
+    color: #ffd700;
+    text-shadow: 2px 2px 10px black;
+    margin-top: 10px;
+}
+
+#conteneurClavier {
+    width: 90vw;
+    height: 45vh;
+    background: #333;
+    border: 10px solid #5c3a21;
+    border-radius: 15px;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    padding: 0 10px;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+}
+
+#clavierPiano {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+}
+
+.touche {
+    position: relative;
+    flex: 1;
+    height: 100%;
+    border: 2px solid #ccc;
+    border-bottom-left-radius: 10px;
+    border-bottom-right-radius: 10px;
+    cursor: pointer;
+    user-select: none;
+    transition: background 0.1s, transform 0.05s;
+}
+
+.touche.blanche {
+    background: white;
+    z-index: 1;
+}
+
+.touche.blanche.active {
+    background: #e0e0e0;
+    transform: translateY(5px);
+}
+
+.touche.noire {
+    background: #111;
+    color: white;
+    height: 60%;
+    margin-left: -3.5%;
+    margin-right: -3.5%;
+    z-index: 2;
+    border: 1px solid #000;
+}
+
+.touche.noire.active {
+    background: #333;
+    transform: translateY(3px);
+}
+
+/* Étoile qui brille pour guider l'enfant */
+.touche.guide::after {
+    content: "⭐";
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 3rem;
+    animation: bouncePiano 0.6s infinite alternate;
+}
+
+@keyframes bouncePiano {
+    from { transform: translateX(-50%) scale(1); opacity: 0.7; }
+    to { transform: translateX(-50%) scale(1.3); opacity: 1; }
+}
+
+/* Overlay des chansons */
+#overlayComptines {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0,0,0,0.85);
+    z-index: 3000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fenetre-comptines {
+    background: #4a148c;
+    border: 5px solid white;
+    border-radius: 30px;
+    width: 80vw;
+    max-height: 80vh;
+    padding: 30px;
+    position: relative;
+    overflow-y: auto;
+}
+
+.btn-ferer-comptines {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: #f44336;
+    color: white;
+    border: 2px solid white;
+    font-size: 25px;
+    cursor: pointer;
+}
+
+.fenetre-comptines h3 {
+    text-align: center;
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+    color: #ffd700;
+}
+
+#grilleComptines {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+}
+
+.btn-comptine {
+    padding: 20px;
+    font-size: 1.5rem;
+    background: #7b1fa2;
+    color: white;
+    border: 3px solid white;
+    border-radius: 20px;
+    cursor: pointer;
+    text-align: left;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.btn-comptine:active {
+    transform: scale(0.95);
+}
+
+/* Étoiles lancées par les touches */
+.etoile-piano {
+    position: fixed;
+    pointer-events: none;
+    font-size: 2rem;
+    z-index: 10000;
+    animation: volEtoile 1.5s forwards ease-out;
+}
+
+@keyframes volEtoile {
+    0% { transform: translate(0, 0) scale(1) rotate(0deg); opacity: 1; }
+    100% { transform: translate(var(--dx), var(--dy)) scale(2) rotate(360deg); opacity: 0; }
+}
