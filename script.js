@@ -1002,9 +1002,9 @@ const emojisAnimaux = [
 ];
 
 const configurationsMemory = {
-    'facile': { cartes: 6, colonnes: 3 },
-    'normal': { cartes: 12, colonnes: 4 },
-    'difficile': { cartes: 24, colonnes: 6 }
+    'facile': { cartes: 8, colonnes: 4 },
+    'normal': { cartes: 16, colonnes: 4 },
+    'difficile': { cartes: 32, colonnes: 8 }
 };
 
 let difficulteActuelleMemory = 'facile';
@@ -1041,11 +1041,8 @@ function genererGrilleMemory() {
     grille.style.gridTemplateColumns = `repeat(${config.colonnes}, 1fr)`;
 
     // Ajouter ou retirer la classe pour les petites cartes
-    if (difficulteActuelleMemory === 'difficile') {
-        grille.classList.add('grille-difficile');
-    } else {
-        grille.classList.remove('grille-difficile');
-    }
+    grille.classList.remove('grille-facile', 'grille-normal', 'grille-difficile');
+    grille.classList.add(`grille-${difficulteActuelleMemory}`);
 
     cartesRetournees = [];
     pairesTrouvees = 0;
