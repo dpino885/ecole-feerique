@@ -88,12 +88,50 @@ window.addEventListener('touchmove', creerTrainee);
 // ==========================================================================
 // 2. NAVIGATION ET PLEIN ÉCRAN
 // ==========================================================================
-function basculerPleinEcran() {
-    if (!document.fullscreenElement) {
+let timerPleinEcran;
+let debutPression;
+const DUREE_LONG_PRESS = 3000;
+
+function gererPressionPleinEcran(e) {
+    e.preventDefault();
+    const estPleinEcran = !!document.fullscreenElement;
+
+    if (!estPleinEcran) {
+        // Entrée immédiate en plein écran
         document.documentElement.requestFullscreen().catch(err => console.log(err));
     } else {
-        document.exitFullscreen();
+        // Sortie avec délai de 3 secondes
+        debutPression = Date.now();
+        const remplissage = document.getElementById('remplissagePleinEcran');
+
+        timerPleinEcran = setInterval(() => {
+            const tempsEcoule = Date.now() - debutPression;
+            const pourcentage = Math.min((tempsEcoule / DUREE_LONG_PRESS) * 100, 100);
+
+            if (remplissage) remplissage.style.height = pourcentage + '%';
+
+            if (tempsEcoule >= DUREE_LONG_PRESS) {
+                clearInterval(timerPleinEcran);
+                document.exitFullscreen();
+                if (remplissage) remplissage.style.height = '0%';
+            }
+        }, 50);
     }
+}
+
+function annulerPressionPleinEcran() {
+    clearInterval(timerPleinEcran);
+    const remplissage = document.getElementById('remplissagePleinEcran');
+    if (remplissage) remplissage.style.height = '0%';
+}
+
+const btnPleinEcran = document.getElementById('btnPleinEcran');
+if (btnPleinEcran) {
+    btnPleinEcran.addEventListener('mousedown', gererPressionPleinEcran);
+    btnPleinEcran.addEventListener('touchstart', gererPressionPleinEcran, { passive: false });
+
+    window.addEventListener('mouseup', annulerPressionPleinEcran);
+    window.addEventListener('touchend', annulerPressionPleinEcran);
 }
 
 const IDS_MODULES_JEU = [
