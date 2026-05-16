@@ -1,6 +1,4 @@
-/* ==========================================================================
    1. STYLE GÉNÉRAL ET DÉCOR (LE FOND)
-   ========================================================================== */
 body {
     margin: 0;
     padding: 0;
@@ -57,9 +55,7 @@ body {
 
 
 
-/* ==========================================================================
    2. LES ÉTAGES (Z-INDEX) - LA GESTION DES COUCHES
-   ========================================================================== */
 /* Étage 10 : Le canevas de dessin (tout au fond du jeu) */
 #canvasDessin,
 #canvasTracerLettres,
@@ -125,9 +121,7 @@ body {
     pointer-events: auto !important;
 }
 
-/* ==========================================================================
    3. JEU DES FÉES (CHIFFRES)
-   ========================================================================== */
 #compteurFées {
     position: fixed;
     top: 20px;
@@ -170,9 +164,7 @@ body {
     pointer-events: none;
 }
 
-/* ==========================================================================
    4. MENU ET BOUTONS
-   ========================================================================== */
 
 
 .barre-titre {
@@ -295,9 +287,7 @@ h1 {
     box-shadow: 0 4px 10px rgba(0,0,0,0.5);
 }
 
-/* ==========================================================================
    5. DESSIN ET OUTILS
-   ========================================================================== */
 
 /* --- CONTENEUR PRINCIPAL (MODE ROW) --- */
 #moduleDessin,
@@ -450,7 +440,7 @@ h1 {
 }
 
 /* --- BOUTON HISTOIRE TEXTE (PROVISOIRE) --- */
-.btn-histoire-texte {
+.btn-histoire-texte, .btn-memory-texte {
     background: linear-gradient(135deg, #6a1b9a, #4a148c) !important;
     border: 4px solid white !important;
     border-radius: 20px !important;
@@ -461,13 +451,11 @@ h1 {
     box-shadow: 0 6px 12px rgba(0,0,0,0.4);
 }
 
-.btn-histoire-texte:active {
+.btn-histoire-texte:active, .btn-memory-texte:active {
     transform: scale(0.95);
 }
 
-/* ==========================================================================
    6. MODULE ALPHABET (MODE SÉQUENTIEL)
-   ========================================================================== */
 
    /* On s'assure que le module lui-même ne bloque rien */
 #moduleAlphabet {
@@ -638,9 +626,7 @@ h1 {
     padding: 10px 40px;
     border-radius: 30px;
 }
-/* ==========================================================================
    7. MODULES FORMES
-   ========================================================================== */
 #jeuFormes {
     display: flex;
     flex-direction: column;
@@ -769,9 +755,7 @@ h1 {
     margin-top: 20px;
 }
 
-/* ==========================================================================
    8. MODULE HISTOIRE
-   ========================================================================== */
 #moduleHistoire {
     z-index: 9500;
 }
@@ -923,9 +907,134 @@ h1 {
     z-index: 11000;
 }
 
-/* ==========================================================================
+   9. MODULE MEMORY
+#moduleMemory {
+    flex-direction: column;
+    justify-content: flex-start;
+    padding-top: 80px;
+    background: rgba(0, 0, 0, 0.4) !important;
+    pointer-events: auto !important;
+}
+
+.btn-retour-memory {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    width: 70px;
+    height: 70px;
+    font-size: 35px;
+    background: #311b92;
+    border: 3px solid white;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    pointer-events: auto;
+    transition: transform 0.2s;
+}
+
+.btn-retour-memory:active {
+    transform: scale(0.9);
+}
+
+#interfaceMemory {
+    text-align: center;
+    margin-bottom: 20px;
+    z-index: 1000;
+}
+
+.selection-difficulte {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+    margin-bottom: 10px;
+}
+
+.selection-difficulte button {
+    padding: 10px 20px;
+    font-size: 1.2rem;
+    border-radius: 15px;
+    border: 3px solid white;
+    background: #6a1b9a;
+    color: white;
+    cursor: pointer;
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+}
+
+.selection-difficulte button:hover {
+    background: #4a148c;
+}
+
+#infoMemory {
+    font-size: 2rem;
+    color: #ffd700;
+    text-shadow: 2px 2px 5px black;
+    margin: 10px 0;
+}
+
+#grilleMemory {
+    display: grid;
+    gap: 15px;
+    perspective: 1000px;
+    max-width: 95vw;
+    max-height: 70vh;
+    justify-content: center;
+}
+
+.carte-memory {
+    width: 120px;
+    height: 160px;
+    position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+
+.carte-memory.retournee {
+    transform: rotateY(180deg);
+}
+
+.carte-face, .carte-dos {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    backface-visibility: hidden;
+    border-radius: 15px;
+    border: 4px solid white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.carte-dos {
+    background: #311b92;
+    background-image: url('images/titre.png');
+    background-size: 80%;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.carte-face {
+    background: white;
+    font-size: 4rem;
+    transform: rotateY(180deg);
+}
+
+/* Ajustements pour les grandes grilles */
+#grilleMemory.grille-difficile {
+    gap: 8px;
+}
+#grilleMemory.grille-difficile .carte-memory {
+    width: 80px;
+    height: 110px;
+}
+#grilleMemory.grille-difficile .carte-face {
+    font-size: 2.5rem;
    9. MODULE PIANO
-   ========================================================================== */
 #modulePiano {
     z-index: 9600;
     flex-direction: column;
