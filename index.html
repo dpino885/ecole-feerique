@@ -26,14 +26,6 @@
                 <img src="images/bouton-formes.png" alt="Formes" draggable="false">
             </button>
 
-            <button onclick="ouvrirModule('tracerLettres')" class="btn-menu btn-menu-texte" type="button" draggable="false">
-                <span class="menu-texte-bulle">Tracer<br>les lettres</span>
-            </button>
-
-            <button onclick="ouvrirModule('tracerChiffres')" class="btn-menu btn-menu-texte" type="button" draggable="false">
-                <span class="menu-texte-bulle">Tracer<br>les chiffres</span>
-            </button>
-
             <button onclick="ouvrirModule('dessin')" class="btn-menu">
                 <img src="images/bouton-dessin.png" alt="Dessin" draggable="false">
             </button>
@@ -77,48 +69,6 @@
         <div id="jeuFormes">
             <h2 id="consigneForme">Chargement du défi...</h2>
             <div id="zoneOptionsFormes"></div>
-        </div>
-    </div>
-
-    <div id="moduleTracerLettres" class="module-ecran" style="display: none;">
-        <div id="conteneurTracerLettres">
-            <div id="modeleFantomeLettres"></div>
-            <canvas id="canvasTracerLettres"></canvas>
-        </div>
-        <div class="barre-laterale">
-            <button class="btn-outil-special" onclick="retourMenu()" title="Retour au menu" aria-label="Retour au menu">🏠</button>
-            <hr class="separateur-lateral">
-            <div class="grille-couleurs">
-                <button class="pastille-laterale" style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
-                <button class="pastille-laterale" style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
-                <button class="pastille-laterale" style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
-                <button class="pastille-laterale" style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
-                <button class="pastille-laterale" style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
-                <button class="pastille-laterale" style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
-                <button class="pastille-laterale" style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
-                <button class="pastille-laterale btn-poubelle" onclick="effacerDessin()">🗑️</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="moduleTracerChiffres" class="module-ecran" style="display: none;">
-        <div id="conteneurTracerChiffres">
-            <div id="modeleFantomeChiffres"></div>
-            <canvas id="canvasTracerChiffres"></canvas>
-        </div>
-        <div class="barre-laterale">
-            <button class="btn-outil-special" onclick="retourMenu()" title="Retour au menu" aria-label="Retour au menu">🏠</button>
-            <hr class="separateur-lateral">
-            <div class="grille-couleurs">
-                <button class="pastille-laterale" style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
-                <button class="pastille-laterale" style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
-                <button class="pastille-laterale" style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
-                <button class="pastille-laterale" style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
-                <button class="pastille-laterale" style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
-                <button class="pastille-laterale" style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
-                <button class="pastille-laterale" style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
-                <button class="pastille-laterale btn-poubelle" onclick="effacerDessin()">🗑️</button>
-            </div>
         </div>
     </div>
 
