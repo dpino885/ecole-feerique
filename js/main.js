@@ -121,6 +121,13 @@ if (btnPleinEcran) {
     window.addEventListener('touchend', annulerPressionPleinEcran);
 }
 
+// Initialiser les voix au premier clic/touche de l'utilisateur
+function debloquerAudio() {
+    initialiserVoix();
+}
+window.addEventListener('click', debloquerAudio, { once: true });
+window.addEventListener('touchstart', debloquerAudio, { once: true });
+
 const IDS_MODULES_JEU = [
     'moduleChiffres',
     'moduleAlphabet',

@@ -1,11 +1,52 @@
 // Utility Functions
+let voixFée = null;
+let voixInitialisee = false;
+
+function initialiserVoix() {
+    if (!("speechSynthesis" in window) || voixInitialisee) return;
+
+    // Débloquer l'audio sur mobile avec une utterance silencieuse
+    const silence = new SpeechSynthesisUtterance("");
+    window.speechSynthesis.speak(silence);
+
+    chargerVoix();
+    if (speechSynthesis.onvoiceschanged !== undefined) {
+        speechSynthesis.onvoiceschanged = chargerVoix;
+    }
+
+    voixInitialisee = true;
+    console.log("Système vocal initialisé");
+}
+
+function chargerVoix() {
+    const voix = window.speechSynthesis.getVoices();
+    // Priorité à fr-CA, puis fr-FR, puis n'importe quelle voix française
+    voixFée = voix.find(v => v.lang === 'fr-CA') ||
+              voix.find(v => v.lang === 'fr-FR') ||
+              voix.find(v => v.lang.startsWith('fr'));
+}
+
 function parler(message) {
     if (!("speechSynthesis" in window)) return;
+
+    // Annuler tout discours en cours
     window.speechSynthesis.cancel();
-    const msg = new SpeechSynthesisUtterance(message);
-    msg.lang = 'fr-CA'; // Force l'accent québécois
-    msg.pitch = 1.2;    // Voix de fée un peu plus haute
-    window.speechSynthesis.speak(msg);
+
+    // Petit délai pour assurer que le cancel est bien traité sur certains Android/Silk
+    setTimeout(() => {
+        const msg = new SpeechSynthesisUtterance(message);
+
+        if (voixFée) {
+            msg.voice = voixFée;
+        } else {
+            msg.lang = 'fr-CA';
+        }
+
+        msg.pitch = 1.2;
+        msg.rate = 1.0;
+
+        window.speechSynthesis.speak(msg);
+    }, 100);
 }
 
 function brancherEvenementsCanvas(canvas) {
