@@ -1,13 +1,73 @@
 // ==========================================================================
 // 1. CONFIGURATION DE LA VOIX ET DES ÉTOILES
 // ==========================================================================
+let voixFéérique = null;
+
+function chargerVoix() {
+    if (!("speechSynthesis" in window)) return;
+    const voix = window.speechSynthesis.getVoices();
+    // On cherche d'abord du Québécois, sinon du Français, sinon la première voix française dispo
+    voixFéérique = voix.find(v => v.lang === 'fr-CA') ||
+                   voix.find(v => v.lang.startsWith('fr')) ||
+                   voix[0];
+}
+
+if ("speechSynthesis" in window) {
+    window.speechSynthesis.onvoiceschanged = chargerVoix;
+    chargerVoix();
+}
+
+let voixInitialisee = false;
+
+function initialiserVoix() {
+    if (voixInitialisee || !("speechSynthesis" in window)) return;
+
+    // On lance une petite utterance pour débloquer le moteur sur mobile
+    // Un espace ou un mot court est parfois plus efficace qu'une chaîne vide
+    const silence = new SpeechSynthesisUtterance(" ");
+    silence.volume = 0; // Muet pour ne pas déranger
+    window.speechSynthesis.speak(silence);
+
+    // On en profite pour forcer le chargement des voix
+    chargerVoix();
+
+    voixInitialisee = true;
+}
+
+// On tente d'initialiser sur n'importe quel clic ou touche pour être sûr
+window.addEventListener('click', initialiserVoix, { once: true });
+window.addEventListener('touchstart', initialiserVoix, { once: true });
+
 function parler(message) {
     if (!("speechSynthesis" in window)) return;
+
+    // Si ce n'est pas encore fait, on initialise
+    if (!voixInitialisee) initialiserVoix();
+
+    // On ré-essaye de charger les voix si elles n'étaient pas prêtes
+    if (!voixFéérique) chargerVoix();
+
     window.speechSynthesis.cancel();
+
     const msg = new SpeechSynthesisUtterance(message);
-    msg.lang = 'fr-CA'; // Force l'accent québécois
+
+    // On définit la langue explicitement pour éviter le silence si la voix n'est pas trouvée
+    msg.lang = 'fr-CA';
+    if (voixFéérique) {
+        msg.voice = voixFéérique;
+        msg.lang = voixFéérique.lang;
+    }
+
     msg.pitch = 1.2;    // Voix de fée un peu plus haute
-    window.speechSynthesis.speak(msg);
+    msg.rate = 1.0;
+    msg.volume = 1.0;   // S'assurer que le volume est au maximum
+
+    // Certains navigateurs mobiles exigent que l'utterance soit "activée"
+    // ou ne supportent pas bien le cancel immédiat suivi du speak.
+    // On utilise un délai légèrement plus long pour Silk.
+    setTimeout(() => {
+        window.speechSynthesis.speak(msg);
+    }, 100);
 }
 
 const canvas = document.getElementById('canvasParticules');
@@ -147,6 +207,7 @@ const IDS_MODULES_JEU = [
 ];
 
 function ouvrirModule(type, options) {
+    initialiserVoix(); // Débloquer la synthèse vocale sur le premier clic
     options = options || {};
     const menu = document.getElementById('menuPrincipal');
     const btnRetour = document.getElementById('btnRetourGlobal');
