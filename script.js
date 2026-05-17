@@ -635,17 +635,8 @@ let estEnTrainDeCelebrer = false;
 const modelesLettres = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 const modelesChiffres = "0123456789".split("");
 
-// Seuils de complétion par caractère (pourcentage de la forme à couvrir)
-const SEUILS_TRACER = {
-    // Simple (10%)
-    'I': 0.10, 'J': 0.10, 'L': 0.10, '1': 0.10, '7': 0.10,
-    // Moyen (30%)
-    'C': 0.30, 'F': 0.30, 'O': 0.30, 'P': 0.30, 'T': 0.30, 'U': 0.30, 'V': 0.30, 'Y': 0.30, 'Z': 0.30,
-    '0': 0.30, '2': 0.30, '3': 0.30, '4': 0.30, '5': 0.30,
-    // Complexe (50%)
-    'A': 0.50, 'B': 0.50, 'D': 0.50, 'E': 0.50, 'G': 0.50, 'H': 0.50, 'K': 0.50, 'M': 0.50, 'N': 0.50,
-    'Q': 0.50, 'R': 0.50, 'S': 0.50, 'W': 0.50, 'X': 0.50, '6': 0.50, '8': 0.50, '9': 0.50
-};
+// Seuil de complétion uniforme (80% des zones de passage doivent être touchées)
+const SEUIL_REUSSITE = 0.80;
 
 let indexModeleActuel = 0;
 let typeActuel = 'libre';
@@ -742,34 +733,25 @@ function genererMasqueEtSecteurs(caractere) {
     const { canvas } = configDessin;
     if (!canvas || !ctxMasque) return;
 
-    // S'assurer que le masque a la même taille que le canvas principal
     canvasMasque.width = canvas.width;
     canvasMasque.height = canvas.height;
-
-    // 1. Préparer le masque (on dessine la lettre en blanc sur fond noir)
-    ctxMasque.save();
-    ctxMasque.fillStyle = "black";
-    ctxMasque.fillRect(0, 0, canvasMasque.width, canvasMasque.height);
-
-    ctxMasque.fillStyle = "white";
-    ctxMasque.strokeStyle = "white";
-    ctxMasque.lineWidth = 40; // Un peu moins permissif pour mieux coller au fantôme
-    ctxMasque.lineJoin = "round";
-    ctxMasque.textAlign = "center";
-    ctxMasque.textBaseline = "middle";
-
-    // On fait correspondre la police
-    ctxMasque.font = "500px 'Arial Black', sans-serif";
 
     const xMid = canvasMasque.width / 2;
     const yMid = canvasMasque.height / 2;
 
-    // On dessine le corps et le contour pour élargir la zone valide (plus facile pour l'enfant)
-    ctxMasque.strokeText(caractere, xMid, yMid);
-    ctxMasque.fillText(caractere, xMid, yMid);
-    ctxMasque.restore();
+    // --- PHASE 1 : Définition des zones de passage (SKELETON) ---
+    ctxMasque.save();
+    ctxMasque.fillStyle = "black";
+    ctxMasque.fillRect(0, 0, canvasMasque.width, canvasMasque.height);
+    ctxMasque.fillStyle = "white";
+    ctxMasque.textAlign = "center";
+    ctxMasque.textBaseline = "middle";
 
-    // 2. Analyser les secteurs actifs (grille invisible pour vérifier la complétion)
+    // On utilise une police plus fine pour définir les "zones de passage" essentielles
+    // Cela évite de demander de remplir toute l'épaisseur d'une police "Black"
+    ctxMasque.font = "500px Arial, sans-serif";
+    ctxMasque.fillText(caractere, xMid, yMid);
+
     secteursActifs = [];
     const stepX = canvas.width / NB_SECTEURS;
     const stepY = canvas.height / NB_SECTEURS;
@@ -778,13 +760,36 @@ function genererMasqueEtSecteurs(caractere) {
         for (let ix = 0; ix < NB_SECTEURS; ix++) {
             const x = ix * stepX;
             const y = iy * stepY;
-            // On vérifie si le centre du secteur est dans la zone blanche du masque
-            const data = ctxMasque.getImageData(Math.floor(x + stepX/2), Math.floor(y + stepY/2), 1, 1).data;
-            if (data[0] > 100) {
+            // On vérifie 4 points dans le secteur pour voir s'il contient une partie de la lettre
+            let estActif = false;
+            const pointsTest = [0.25, 0.75];
+            for (let py of pointsTest) {
+                for (let px of pointsTest) {
+                    const data = ctxMasque.getImageData(Math.floor(x + stepX*px), Math.floor(y + stepY*py), 1, 1).data;
+                    if (data[0] > 100) {
+                        estActif = true;
+                        break;
+                    }
+                }
+                if (estActif) break;
+            }
+            if (estActif) {
                 secteursActifs.push(iy * NB_SECTEURS + ix);
             }
         }
     }
+
+    // --- PHASE 2 : Masque de collision pour le feedback ROUGE ---
+    // On repasse sur la police épaisse pour le feedback visuel en temps réel
+    ctxMasque.fillStyle = "black";
+    ctxMasque.fillRect(0, 0, canvasMasque.width, canvasMasque.height);
+    ctxMasque.fillStyle = "white";
+    ctxMasque.strokeStyle = "white";
+    ctxMasque.lineWidth = 40;
+    ctxMasque.font = "500px 'Arial Black', sans-serif";
+    ctxMasque.strokeText(caractere, xMid, yMid);
+    ctxMasque.fillText(caractere, xMid, yMid);
+    ctxMasque.restore();
 }
 
 // --- GESTION DU TRACÉ ---
@@ -812,11 +817,20 @@ function dessiner(e) {
 
         if (estDansLaLettre) {
             ctx.strokeStyle = couleurActuelle;
-            const ix = Math.floor(x / (canvas.width / NB_SECTEURS));
-            const iy = Math.floor(y / (canvas.height / NB_SECTEURS));
-            const idSecteur = iy * NB_SECTEURS + ix;
-            if (secteursActifs.includes(idSecteur)) {
-                secteursTouches.add(idSecteur);
+
+            // On valide les secteurs dans un petit rayon autour du point (Zones de Passage)
+            // Cela permet de valider le passage sans forcer à "remplir" toute l'épaisseur.
+            const rayonValidation = 15;
+            const pas = 10;
+            for (let dx = -rayonValidation; dx <= rayonValidation; dx += pas) {
+                for (let dy = -rayonValidation; dy <= rayonValidation; dy += pas) {
+                    const ix = Math.floor((x + dx) / (canvas.width / NB_SECTEURS));
+                    const iy = Math.floor((y + dy) / (canvas.height / NB_SECTEURS));
+                    const idSecteur = iy * NB_SECTEURS + ix;
+                    if (secteursActifs.includes(idSecteur)) {
+                        secteursTouches.add(idSecteur);
+                    }
+                }
             }
         } else {
             ctx.strokeStyle = "red";
@@ -853,11 +867,10 @@ function arreterDessin() {
 function verifierTracerFini() {
     if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
 
-    // Récupérer le seuil spécifique au caractère ou 25% par défaut
-    const seuilReussite = SEUILS_TRACER[caractereActuel] || 0.25;
+    // Utilisation du seuil uniforme sur les zones de passage (80%)
     const ratioRemplissage = secteursTouches.size / secteursActifs.length;
 
-    if (ratioRemplissage > seuilReussite) {
+    if (ratioRemplissage >= SEUIL_REUSSITE) {
         celebrerFinTracer();
     }
 }
