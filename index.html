@@ -54,6 +54,10 @@
                 <button onclick="ouvrirModule('piano')" class="btn-menu">
                     <img src="images/bouton-piano.webp" alt="Le Piano aux Étoiles" draggable="false">
                 </button>
+
+                <button onclick="ouvrirModule('puzzle')" class="btn-menu">
+                    <img src="images/bouton-casse-tete.png" alt="Casse-Tête" draggable="false">
+                </button>
             </div>
         </div>
     </div>
@@ -196,6 +200,26 @@
     <div id="grilleMemory"></div>
 </div>
 
+    <div id="moduleCasseTete" class="module-ecran" style="display: none;">
+        <button class="btn-retour-puzzle" onclick="retourMenu()" aria-label="Retour au menu">🏠</button>
+
+        <div id="selectionPuzzle">
+            <div class="selection-difficulte">
+                <button onclick="changerDifficultePuzzle('facile')">Facile (4x4)</button>
+                <button onclick="changerDifficultePuzzle('normal')">Normal (6x6)</button>
+                <button onclick="changerDifficultePuzzle('difficile')">Difficile (8x8)</button>
+            </div>
+            <div id="grilleImagesPuzzle" class="grille-images-puzzle">
+                <!-- Les images seront générées ici -->
+            </div>
+        </div>
+
+        <div id="jeuPuzzle" style="display: none;">
+            <div id="zonePlateau"></div>
+            <div id="zonePieces"></div>
+        </div>
+    </div>
+
     <div id="modulePiano" class="module-ecran" style="display: none;">
         <button class="btn-retour-piano" onclick="retourMenuPiano()" aria-label="Retour au menu">🏠</button>
 
@@ -229,6 +253,7 @@
     <script src="js/histoire.js"></script>
     <script src="js/memory.js"></script>
     <script src="js/piano.js"></script>
+    <script src="js/casse-tete.js"></script>
     <script>
         // Initialize canvas events after all scripts are loaded
         window.addEventListener('DOMContentLoaded', () => {

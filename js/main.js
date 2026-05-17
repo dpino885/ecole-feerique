@@ -137,7 +137,8 @@ const IDS_MODULES_JEU = [
     'moduleTracerChiffres',
     'moduleHistoire',
     'moduleMemory',
-    'modulePiano'
+    'modulePiano',
+    'moduleCasseTete'
 ];
 
 function ouvrirModule(type, options) {
@@ -220,6 +221,12 @@ function ouvrirModule(type, options) {
         const btnRetourGlobal = document.getElementById('btnRetourGlobal');
         if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
         initialiserPiano();
+    } else if (type === 'puzzle') {
+        const el = document.getElementById('moduleCasseTete');
+        if (el) el.style.display = 'flex';
+        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
+        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
+        initialiserModulePuzzle();
     }
 }
 
