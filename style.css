@@ -13,7 +13,7 @@ body {
     align-items: center;
     color: white;
     /* Ton image de fond réaliste */
-    background: url('./fond-realiste.png');
+    background: url('./fond-realiste.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
@@ -29,7 +29,7 @@ body {
     background: transparent !important;
 }
 
-.btn-image-menu {
+.btn-menu {
     /* ... tes autres styles ... */
     width: 250px; /* <--- ON AUGMENTE LA TAILLE DU BOUTON ICI (ex: 250px) */
     height: auto;
@@ -42,7 +42,7 @@ body {
     align-items: center;
 }
 
-.btn-image-menu img {
+.btn-menu img {
     width: 100%; /* L'image prend toute la largeur du bouton */
     height: auto;
     
@@ -1003,7 +1003,7 @@ h1 {
 
 .carte-dos {
     background: #311b92;
-    background-image: url('images/titre.png');
+    background-image: url('images/titre.webp');
     background-size: 80%;
     background-position: center;
     background-repeat: no-repeat;
@@ -1190,7 +1190,7 @@ h1 {
     overflow-y: auto;
 }
 
-.btn-ferer-comptines {
+.btn-fermer-comptines {
     position: absolute;
     top: 15px;
     right: 15px;
