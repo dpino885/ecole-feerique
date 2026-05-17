@@ -11,40 +11,48 @@
     <canvas id="canvasParticules"></canvas>
 
     <div class="interface" id="menuPrincipal">
-        <button id="btnPleinEcran" onclick="basculerPleinEcran()" title="Plein écran">🖥️</button>
+        <button id="btnPleinEcran" title="Plein écran"><div id="remplissagePleinEcran"></div></button>
         <div class="barre-titre">
-            <h1><img src="images/titre.png" alt="L'École Féérique" class="titre-image"></h1>
+            <h1><img src="images/titre.webp" alt="L'École Féérique" class="titre-image"></h1>
         </div>
         
         <div class="zone-menu-scroll">
             <div class="menu-boutons">
                 <button onclick="ouvrirModule('chiffres')" class="btn-menu">
-                    <img src="images/bouton-chiffres.png" alt="Chiffres" draggable="false">
+                    <img src="images/bouton-chiffres.webp" alt="Chiffres" draggable="false">
                 </button>
 
                 <button onclick="ouvrirModule('alphabet')" class="btn-menu">
-                    <img src="images/bouton-alphabet.png" alt="Alphabet" draggable="false">
+                    <img src="images/bouton-alphabet.webp" alt="Alphabet" draggable="false">
                 </button>
 
                 <button onclick="ouvrirModule('formes')" class="btn-menu">
-                    <img src="images/bouton-formes.png" alt="Formes" draggable="false">
+                    <img src="images/bouton-formes.webp" alt="Formes" draggable="false">
                 </button>
 
 
                 <button onclick="ouvrirModule('tracerLettres')" class="btn-menu" type="button">
-                    <img src="images/bouton-alphabet-tracer.png" alt="Tracer les lettres" draggable="false">
+                    <img src="images/bouton-alphabet-tracer.webp" alt="Tracer les lettres" draggable="false">
                 </button>
 
                 <button onclick="ouvrirModule('tracerChiffres')" class="btn-menu" type="button">
-                    <img src="images/bouton-chiffres-tracer.png" alt="Tracer les chiffres" draggable="false">
+                    <img src="images/bouton-chiffres-tracer.webp" alt="Tracer les chiffres" draggable="false">
                 </button>
 
                 <button onclick="ouvrirModule('dessin')" class="btn-menu">
-                    <img src="images/bouton-dessin.png" alt="Dessin" draggable="false">
+                    <img src="images/bouton-dessin.webp" alt="Dessin" draggable="false">
                 </button>
 
-                <button onclick="ouvrirModule('histoire')" class="btn-menu btn-histoire-texte">
-                    <span>Histoire</span>
+                <button onclick="ouvrirModule('memory')" class="btn-menu">
+                    <img src="images/bouton-jeu-de-mémoire.webp" alt="Memory" draggable="false">
+                </button>
+
+                <button onclick="ouvrirModule('histoire')" class="btn-menu">
+                    <img src="images/bouton-histoire.webp" alt="Histoire" draggable="false">
+                </button>
+
+                <button onclick="ouvrirModule('piano')" class="btn-menu">
+                    <img src="images/bouton-piano.webp" alt="Le Piano aux Étoiles" draggable="false">
                 </button>
             </div>
         </div>
@@ -88,7 +96,6 @@
 
     <div id="moduleTracerLettres" class="module-ecran" style="display: none;">
         <div id="conteneurTracerLettres">
-            <div id="modeleFantomeLettres"></div>
             <canvas id="canvasTracerLettres"></canvas>
         </div>
         <div class="barre-laterale">
@@ -109,7 +116,6 @@
 
     <div id="moduleTracerChiffres" class="module-ecran" style="display: none;">
         <div id="conteneurTracerChiffres">
-            <div id="modeleFantomeChiffres"></div>
             <canvas id="canvasTracerChiffres"></canvas>
         </div>
         <div class="barre-laterale">
@@ -131,7 +137,6 @@
     <div id="moduleDessin" class="module-ecran" style="display: none;">
     
     <div id="conteneurCanevas">
-        <div id="modeleFantome"></div>
         <canvas id="canvasDessin"></canvas>
     </div>
 
@@ -177,6 +182,61 @@
         </div>
     </div>
 </div>
-    <script src="script.js"></script> 
+
+<div id="moduleMemory" class="module-ecran" style="display: none;">
+    <button class="btn-retour-memory" onclick="retourMenu()" aria-label="Retour au menu">🏠</button>
+    <div id="interfaceMemory">
+        <div class="selection-difficulte">
+            <button onclick="changerDifficulteMemory('facile')">Facile</button>
+            <button onclick="changerDifficulteMemory('normal')">Normal</button>
+            <button onclick="changerDifficulteMemory('difficile')">Difficile</button>
+        </div>
+        <h2 id="infoMemory">Niveau : Facile</h2>
+    </div>
+    <div id="grilleMemory"></div>
+</div>
+
+    <div id="modulePiano" class="module-ecran" style="display: none;">
+        <button class="btn-retour-piano" onclick="retourMenuPiano()" aria-label="Retour au menu">🏠</button>
+
+        <div id="interfacePiano">
+            <button id="btnListeComptines" onclick="ouvrirListeComptines()">🎵 Chansons</button>
+            <h2 id="titreComptine">Mode Libre</h2>
+        </div>
+
+        <div id="conteneurClavier">
+            <div id="clavierPiano">
+                <!-- Les touches seront générées ici pour plus de flexibilité -->
+            </div>
+        </div>
+
+        <div id="overlayComptines" style="display: none;">
+            <div class="fenetre-comptines">
+                <button onclick="fermerListeComptines()" class="btn-fermer-comptines">✖</button>
+                <h3>Choisis une chanson</h3>
+                <div id="grilleComptines"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/state.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/main.js"></script>
+    <script src="js/fees.js"></script>
+    <script src="js/alphabet.js"></script>
+    <script src="js/formes.js"></script>
+    <script src="js/dessin.js"></script>
+    <script src="js/histoire.js"></script>
+    <script src="js/memory.js"></script>
+    <script src="js/piano.js"></script>
+    <script>
+        // Initialize canvas events after all scripts are loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            brancherEvenementsCanvas(document.getElementById('canvasDessin'));
+            brancherEvenementsCanvas(document.getElementById('canvasTracerLettres'));
+            brancherEvenementsCanvas(document.getElementById('canvasTracerChiffres'));
+        });
+    </script>
+
 </body>
 </html>
