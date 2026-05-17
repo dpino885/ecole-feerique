@@ -1038,7 +1038,115 @@ h1 {
 }
 
 /* ==========================================================================
-   10. MODULE PIANO
+   10. MODULE CASSE-TÊTE
+   ========================================================================== */
+#moduleCasseTete {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.4);
+    pointer-events: auto !important;
+}
+
+.btn-retour-puzzle {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    z-index: 2000;
+    width: 80px;
+    height: 80px;
+    font-size: 40px;
+    background: rgba(49, 27, 146, 0.9);
+    border: 4px solid white;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#selectionPuzzle {
+    text-align: center;
+    width: 90%;
+    max-width: 1000px;
+    overflow-y: auto;
+    max-height: 90vh;
+}
+
+#selectionPuzzle h2 {
+    color: white;
+    font-family: 'Mountains of Christmas', cursive;
+    font-size: 3rem;
+    margin-bottom: 20px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+}
+
+.grille-images-puzzle {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin-top: 30px;
+    padding: 20px;
+}
+
+.item-image-puzzle {
+    background: white;
+    padding: 10px;
+    border-radius: 15px;
+    cursor: pointer;
+    transition: transform 0.2s;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+}
+
+.item-image-puzzle:hover {
+    transform: scale(1.05);
+}
+
+.item-image-puzzle img {
+    width: 100%;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 10px;
+}
+
+#jeuPuzzle {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+}
+
+#zonePlateau {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(255, 255, 255, 0.1);
+    border: 2px dashed rgba(255, 255, 255, 0.3);
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+    z-index: 1;
+}
+
+.piece-puzzle {
+    position: absolute;
+    cursor: grab;
+    filter: drop-shadow(2px 2px 5px rgba(0,0,0,0.5));
+    touch-action: none;
+    z-index: 10;
+}
+
+.piece-puzzle:active {
+    cursor: grabbing;
+}
+
+.piece-puzzle.locked {
+    cursor: default;
+    filter: none;
+    z-index: 5 !important;
+}
+
+/* ==========================================================================
+   11. MODULE PIANO
    ========================================================================== */
 #modulePiano {
     flex-direction: column;
