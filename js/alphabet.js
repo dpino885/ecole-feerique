@@ -165,37 +165,27 @@ let indexMotActuel = 0;
  * Prépare le module quand on l'ouvre depuis le menu
  */
 function genererAlphabet() {
-    const ecranDepart = document.getElementById('ecranDepartAlphabet');
     const zoneJeu = document.getElementById('zoneLettreMagique');
 
-    if(ecranDepart && zoneJeu) {
-        ecranDepart.style.display = 'block';
-        zoneJeu.style.display = 'none';
+    if(zoneJeu) {
+        zoneJeu.style.display = 'flex';
     }
     indexLettreActuelle = 0;
     indexMotActuel = 0;
-}
 
-/**
- * Lancé par le gros bouton "JOUER"
- */
-function demarrerAlphabet() {
-    const ecran = document.getElementById('ecranDepartAlphabet');
-    const zone = document.getElementById('zoneLettreMagique');
+    const alphabet = Object.keys(dictionnaireAlphabet);
+    const lettre = alphabet[indexLettreActuelle];
+    const data = dictionnaireAlphabet[lettre][indexMotActuel];
 
-    if (ecran && zone) {
-        ecran.style.display = 'none';
-        zone.style.display = 'flex';
-        indexLettreActuelle = 0;
-        indexMotActuel = 0;
-        afficherLettre();
-    }
+    afficherLettre(true); // Passer true pour ne pas parler immédiatement dans afficherLettre
+    parler(`L'alphabet des fées ! ${lettre} comme ${data.mot}`);
 }
 
 /**
  * Gère l'affichage et la voix pour la lettre en cours
+ * @param {boolean} muet Si true, n'appelle pas parler()
  */
-function afficherLettre() {
+function afficherLettre(muet = false) {
     const alphabet = Object.keys(dictionnaireAlphabet);
     const lettre = alphabet[indexLettreActuelle];
     const data = dictionnaireAlphabet[lettre][indexMotActuel];
@@ -218,7 +208,9 @@ function afficherLettre() {
         bouton.style.background = `linear-gradient(135deg, ${couleurBouton}, hsl(${teinte}, 80%, 40%))`;
         bouton.style.setProperty('--couleur-scintillement', couleurBouton);
 
-        parler(`${lettre} comme ${data.mot}`);
+        if (!muet) {
+            parler(`${lettre} comme ${data.mot}`);
+        }
 
         for (let i = 0; i < 20; i++) {
             const p = new Particule(window.innerWidth / 2, window.innerHeight / 2);
