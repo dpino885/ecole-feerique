@@ -157,9 +157,15 @@ function dessinerFantome() {
 function getCoordsAbsolues(pt) {
     const { canvas } = configDessin;
     if (!canvas) return {x:0, y:0};
+
+    // Ajustements pour caler le tracé sur le fantôme (Arial Black 500px)
+    // Le tracé était jugé trop grand et légèrement trop bas.
+    const SCALE = 0.88;
+    const OFFSET_Y = -20;
+
     return {
-        x: (canvas.width / 2) + pt.x,
-        y: (canvas.height / 2) + pt.y
+        x: (canvas.width / 2) + (pt.x * SCALE),
+        y: (canvas.height / 2) + (pt.y * SCALE) + OFFSET_Y
     };
 }
 
