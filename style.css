@@ -24,8 +24,7 @@ body {
 /* On s'assure que rien ne bloque l'image de fond */
 .module-ecran,
 #moduleDessin,
-#moduleTracerLettres,
-#moduleTracerChiffres {
+#moduleTableauTrace {
     background: transparent !important;
 }
 
@@ -62,8 +61,7 @@ body {
    ========================================================================== */
 /* Étage 10 : Le canevas de dessin (tout au fond du jeu) */
 #canvasDessin,
-#canvasTracerLettres,
-#canvasTracerChiffres {
+#canvasTableauTrace {
     position: absolute;
     top: 0;
     left: 0;
@@ -87,6 +85,10 @@ body {
     flex-direction: column;
     align-items: center;
     justify-content: center;
+}
+
+#moduleTableauTrace {
+    flex-direction: column; /* On surcharge pour avoir le bouton en haut si besoin, mais ici c'est surtout le canvas qui prend tout */
 }
 
 /* Étage 500 : Les éléments cliquables dans les jeux */
@@ -306,8 +308,7 @@ h1 {
 
 /* --- CONTENEUR PRINCIPAL (MODE ROW) --- */
 #moduleDessin,
-#moduleTracerLettres,
-#moduleTracerChiffres {
+#moduleTableauTrace {
     position: fixed;
     top: 0;
     left: 0;
@@ -321,8 +322,7 @@ h1 {
 }
 
 #conteneurCanevas,
-#conteneurTracerLettres,
-#conteneurTracerChiffres {
+#conteneurTableauTrace {
     position: relative;
     flex: 1;
     height: 100%;

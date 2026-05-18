@@ -54,7 +54,7 @@ if (ctx && canvas) {
 }
 
 function estPlancheDessinOuverte() {
-    return ['moduleDessin', 'moduleTracerLettres', 'moduleTracerChiffres'].some((id) => {
+    return ['moduleDessin', 'moduleTableauTrace'].some((id) => {
         const el = document.getElementById(id);
         return el && el.style.display !== 'none';
     });
@@ -125,8 +125,6 @@ if (btnPleinEcran) {
 window.addEventListener('DOMContentLoaded', () => {
     // Brancher les événements de dessin
     brancherEvenementsCanvas(document.getElementById('canvasDessin'));
-    brancherEvenementsCanvas(document.getElementById('canvasTracerLettres'));
-    brancherEvenementsCanvas(document.getElementById('canvasTracerChiffres'));
 });
 
 // Débloquer l'audio au premier clic/touche
@@ -142,8 +140,7 @@ const IDS_MODULES_JEU = [
     'moduleAlphabet',
     'moduleFormes',
     'moduleDessin',
-    'moduleTracerLettres',
-    'moduleTracerChiffres',
+    'moduleTableauTrace',
     'moduleHistoire',
     'moduleMemory',
     'modulePiano',
@@ -158,7 +155,7 @@ function ouvrirModule(type, options) {
     if (menu) menu.style.display = 'none';
 
     // Par défaut, on affiche le bouton retour global, sauf pour les modules qui ont leur propre bouton
-    const modulesAvecPropreRetour = ['dessin', 'tracerLettres', 'tracerChiffres', 'memory', 'piano', 'puzzle'];
+    const modulesAvecPropreRetour = ['dessin', 'tableauTrace', 'memory', 'piano', 'puzzle'];
     if (btnRetour) {
         btnRetour.style.display = modulesAvecPropreRetour.includes(type) ? 'none' : 'flex';
     }
@@ -191,24 +188,10 @@ function ouvrirModule(type, options) {
             initialiserDessin();
             parler("Dessine avec tes doigts magiques !");
             break;
-        case 'tracerLettres':
-            bindDessinSurface(SURFACE_LETTRES);
-            document.getElementById('moduleTracerLettres').style.display = 'flex';
-            typeActuel = 'lettre';
-            indexModeleActuel = (options.lettre && modelesLettres.includes(options.lettre))
-                ? modelesLettres.indexOf(options.lettre) : 0;
-            initialiserDessin();
-            effacerDessin(false);
-            afficherNouveauModele();
-            break;
-        case 'tracerChiffres':
-            bindDessinSurface(SURFACE_CHIFFRES);
-            document.getElementById('moduleTracerChiffres').style.display = 'flex';
-            typeActuel = 'chiffre';
-            indexModeleActuel = 0;
-            initialiserDessin();
-            effacerDessin(false);
-            afficherNouveauModele();
+        case 'tableauTrace':
+            document.getElementById('moduleTableauTrace').style.display = 'flex';
+            initialiserTableauTrace();
+            parler("Trace les lettres et les chiffres !");
             break;
         case 'histoire':
             document.getElementById('moduleHistoire').style.display = 'flex';
