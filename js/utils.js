@@ -1,110 +1,160 @@
 // Utility Functions
-let voixFée = null;
-let voixInitialisee = false;
-let derniereUtterance = null; // Garder une référence pour éviter le garbage collection sur Android
-let utteranceSilencieuse = null; // Référence persistante pour le déblocage
 
-function initialiserVoix() {
-    if (!("speechSynthesis" in window) || voixInitialisee) return;
+/**
+ * Gestionnaire de Voix optimisé pour Mobile (iOS/Android)
+ */
+const VoiceManager = {
+    voixFée: null,
+    initialisee: false,
+    derniereUtterance: null,
+    intervalHeartbeat: null,
+    voixPromise: null,
 
-    // Forcer le resume avant tout sur Android
-    window.speechSynthesis.resume();
+    init() {
+        if (!("speechSynthesis" in window) || this.initialisee) return;
 
-    // Charger les voix immédiatement
-    chargerVoix();
+        // Tenter de charger les voix immédiatement
+        this.chargerVoix();
 
-    // Débloquer l'audio sur mobile avec une utterance quasi-silencieuse
-    // Utiliser un point ou un petit mot car certains Android ignorent l'espace vide
-    utteranceSilencieuse = new SpeechSynthesisUtterance(".");
-    utteranceSilencieuse.volume = 0.001;
-    utteranceSilencieuse.rate = 10;
+        if (speechSynthesis.onvoiceschanged !== undefined) {
+            speechSynthesis.onvoiceschanged = () => this.chargerVoix();
+        }
 
-    try {
-        // Certains navigateurs Android nécessitent un resume avant le premier speak
+        this.initialisee = true;
+        console.log("VoiceManager: Initialisé");
+    },
+
+    chargerVoix() {
+        if (this.voixPromise) return this.voixPromise;
+
+        this.voixPromise = new Promise((resolve) => {
+            let tentatives = 0;
+            const tenterChargement = () => {
+                tentatives++;
+                const voix = window.speechSynthesis.getVoices();
+                if (voix && voix.length > 0) {
+                    // Priorité à fr-CA, puis fr-FR, puis n'importe quelle voix française
+                    this.voixFée = voix.find(v => {
+                        const l = v.lang.toLowerCase().replace('_', '-');
+                        return l === 'fr-ca' || l === 'fr-fr';
+                    }) || voix.find(v => v.lang.toLowerCase().startsWith('fr'));
+
+                    if (this.voixFée) {
+                        console.log("VoiceManager: Voix sélectionnée :", this.voixFée.name, this.voixFée.lang);
+                    }
+                    resolve(this.voixFée);
+                } else if (tentatives < 10) {
+                    // Sur certains navigateurs, getVoices() peut être vide au début
+                    setTimeout(tenterChargement, 100);
+                } else {
+                    console.warn("VoiceManager: Aucune voix trouvée après 10 tentatives");
+                    resolve(null);
+                }
+            };
+            tenterChargement();
+        });
+        return this.voixPromise;
+    },
+
+    unlock() {
+        if (this.initialisee) {
+            window.speechSynthesis.resume();
+            return;
+        }
+        console.log("VoiceManager: Tentative de déverrouillage audio");
+        // iOS/Android require a speak() call within a user interaction
         window.speechSynthesis.resume();
-        window.speechSynthesis.speak(utteranceSilencieuse);
-    } catch (e) {
-        console.error("Erreur initialisation voix:", e);
+
+        const silence = new SpeechSynthesisUtterance(".");
+        silence.volume = 0.001; // Plus sûr que 0 sur certains appareils
+        silence.rate = 10;
+
+        // On attache un événement pour vérifier si ça a marché
+        silence.onstart = () => console.log("VoiceManager: Moteur déverrouillé avec succès");
+
+        window.speechSynthesis.speak(silence);
+
+        // Initialiser aussi le reste
+        this.init();
+    },
+
+    parler(message) {
+        if (!("speechSynthesis" in window)) return;
+
+        // Nettoyage des processus en cours
+        this.stopper();
+
+        // Petit délai pour laisser le temps au moteur de se réinitialiser (crucial sur Android)
+        setTimeout(async () => {
+            if (!this.voixFée) {
+                await this.chargerVoix();
+            }
+
+            const msg = new SpeechSynthesisUtterance(message);
+            this.derniereUtterance = msg; // Protection Garbage Collection
+
+            if (this.voixFée) {
+                msg.voice = this.voixFée;
+                msg.lang = this.voixFée.lang;
+            } else {
+                msg.lang = 'fr-FR';
+            }
+
+            // Paramètres optimisés
+            msg.pitch = 1.1;
+            msg.rate = 0.95;
+            msg.volume = 1.0;
+
+            msg.onstart = () => {
+                // Heartbeat Android : empêche la coupure après 15 secondes
+                if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
+                this.intervalHeartbeat = setInterval(() => {
+                    if (window.speechSynthesis.speaking) {
+                        window.speechSynthesis.resume();
+                    } else {
+                        clearInterval(this.intervalHeartbeat);
+                    }
+                }, 500);
+            };
+
+            msg.onend = () => {
+                if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
+                this.derniereUtterance = null;
+            };
+
+            msg.onerror = (event) => {
+                console.error("VoiceManager: Erreur TTS", event);
+                if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
+                // Si erreur, on tente de reset le moteur
+                window.speechSynthesis.resume();
+            };
+
+            window.speechSynthesis.speak(msg);
+        }, 100);
+    },
+
+    stopper() {
+        if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
+        window.speechSynthesis.resume();
+        window.speechSynthesis.cancel();
     }
+};
 
-    if (speechSynthesis.onvoiceschanged !== undefined) {
-        speechSynthesis.onvoiceschanged = chargerVoix;
-    }
-
-    voixInitialisee = true;
-}
-
-function chargerVoix() {
-    if (!("speechSynthesis" in window)) return;
-
-    const voix = window.speechSynthesis.getVoices();
-    if (!voix || voix.length === 0) return;
-
-    // Priorité à fr-CA, puis fr-FR, puis n'importe quelle voix française
-    voixFée = voix.find(v => {
-        const l = v.lang.toLowerCase().replace('_', '-');
-        return l === 'fr-ca' || l === 'fr-fr';
-    }) || voix.find(v => v.lang.toLowerCase().startsWith('fr'));
-
-    if (voixFée) {
-        console.log("Voix sélectionnée :", voixFée.name, voixFée.lang);
-    }
+// Fonctions globales pour rester compatible avec le reste du code
+function initialiserVoix() {
+    VoiceManager.unlock();
 }
 
 function parler(message) {
-    if (!("speechSynthesis" in window)) return;
-
-    // S'assurer que le système est initialisé
-    if (!voixInitialisee) initialiserVoix();
-    if (!voixFée) chargerVoix();
-
-    // Sur Android, cancel() est parfois capricieux. On resume avant pour être sûr de débloquer.
-    window.speechSynthesis.resume();
-    window.speechSynthesis.cancel();
-
-    // Petit délai pour assurer que le cancel est bien traité par le moteur
-    setTimeout(() => {
-        const msg = new SpeechSynthesisUtterance(message);
-        derniereUtterance = msg; // Protection indispensable contre le Garbage Collection sur Android
-
-        if (voixFée) {
-            msg.voice = voixFée;
-        }
-        msg.lang = 'fr-FR';
-        msg.pitch = 1.1;
-        msg.rate = 0.95;
-        msg.volume = 1.0;
-
-        // Fix Android : force le resume pendant la lecture pour éviter les coupures (bug des 15 secondes)
-        let intervalHeartbeat = null;
-        msg.onstart = () => {
-            if (intervalHeartbeat) clearInterval(intervalHeartbeat);
-            intervalHeartbeat = setInterval(() => {
-                if (!window.speechSynthesis.speaking) {
-                    clearInterval(intervalHeartbeat);
-                } else {
-                    window.speechSynthesis.resume();
-                }
-            }, 500);
-        };
-
-        msg.onend = () => {
-            if (intervalHeartbeat) clearInterval(intervalHeartbeat);
-            derniereUtterance = null;
-        };
-
-        msg.onerror = (event) => {
-            console.error("Erreur TTS:", event);
-            if (intervalHeartbeat) clearInterval(intervalHeartbeat);
-            window.speechSynthesis.resume();
-        };
-
-        window.speechSynthesis.speak(msg);
-    }, 150); // Délai légèrement augmenté pour Android
+    VoiceManager.parler(message);
 }
 
+// Utilitaires Canvas (inchangés mais conservés ici par cohérence avec l'ancien fichier)
 function brancherEvenementsCanvas(canvas) {
     if (!canvas) return;
+
+    const options = { passive: false };
+
     canvas.addEventListener('mousedown', demarrerDessin);
     canvas.addEventListener('mousemove', dessiner);
     canvas.addEventListener('mouseup', arreterDessin);
@@ -118,7 +168,7 @@ function brancherEvenementsCanvas(canvas) {
             clientY: touch.clientY
         });
         canvas.dispatchEvent(mouseEvent);
-    }, { passive: false });
+    }, options);
 
     canvas.addEventListener('touchmove', (e) => {
         e.preventDefault();
@@ -128,11 +178,11 @@ function brancherEvenementsCanvas(canvas) {
             clientY: touch.clientY
         });
         canvas.dispatchEvent(mouseEvent);
-    }, { passive: false });
+    }, options);
 
     canvas.addEventListener('touchend', (e) => {
         e.preventDefault();
         const mouseEvent = new MouseEvent('mouseup', {});
         canvas.dispatchEvent(mouseEvent);
-    }, { passive: false });
+    }, options);
 }

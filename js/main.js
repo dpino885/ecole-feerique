@@ -132,8 +132,9 @@ window.addEventListener('DOMContentLoaded', () => {
 // Débloquer l'audio au premier clic/touche
 function debloquerAudio() {
     initialiserVoix();
+    // Sur certains iOS, il faut parfois plusieurs interactions ou un speak immédiat
 }
-window.addEventListener('click', debloquerAudio, { once: true, capture: true });
+window.addEventListener('mousedown', debloquerAudio, { once: true, capture: true });
 window.addEventListener('touchstart', debloquerAudio, { once: true, capture: true });
 
 const IDS_MODULES_JEU = [
@@ -241,8 +242,8 @@ function retourMenu() {
     const menu = document.getElementById('menuPrincipal');
     if (menu) menu.style.display = 'flex';
 
-    // Nettoyage voix si nécessaire
-    if ("speechSynthesis" in window) {
-        window.speechSynthesis.cancel();
+    // Nettoyage voix via le manager
+    if (window.VoiceManager) {
+        VoiceManager.stopper();
     }
 }
