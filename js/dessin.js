@@ -4,19 +4,6 @@ const SURFACE_LIBRE = {
     canvasId: 'canvasDessin',
     conteneurId: 'conteneurCanevas'
 };
-const SURFACE_LETTRES = {
-    moduleId: 'moduleTracerLettres',
-    canvasId: 'canvasTracerLettres',
-    canvasGuideId: 'canvasTracerLettresGuide',
-    conteneurId: 'conteneurTracerLettres'
-};
-const SURFACE_CHIFFRES = {
-    moduleId: 'moduleTracerChiffres',
-    canvasId: 'canvasTracerChiffres',
-    canvasGuideId: 'canvasTracerChiffresGuide',
-    conteneurId: 'conteneurTracerChiffres'
-};
-
 const configDessin = {
     moduleEl: null,
     canvas: null,
@@ -51,9 +38,7 @@ let dernierCanvasDessin = null;
 function syncSurfaceDepuisCanvas(canvas) {
     if (!canvas || !canvas.id) return;
     const map = {
-        canvasDessin: SURFACE_LIBRE,
-        canvasTracerLettres: SURFACE_LETTRES,
-        canvasTracerChiffres: SURFACE_CHIFFRES
+        canvasDessin: SURFACE_LIBRE
     };
     const spec = map[canvas.id];
     if (spec) bindDessinSurface(spec);
@@ -402,5 +387,3 @@ window.dessiner = dessiner;
 window.arreterDessin = arreterDessin;
 window.bindDessinSurface = bindDessinSurface;
 window.SURFACE_LIBRE = SURFACE_LIBRE;
-window.SURFACE_LETTRES = SURFACE_LETTRES;
-window.SURFACE_CHIFFRES = SURFACE_CHIFFRES;

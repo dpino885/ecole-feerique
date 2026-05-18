@@ -31,12 +31,8 @@
                 </button>
 
 
-                <button onclick="ouvrirModule('tracerLettres')" class="btn-menu" type="button">
-                    <img src="images/bouton-alphabet-tracer.webp" alt="Tracer les lettres" draggable="false">
-                </button>
-
-                <button onclick="ouvrirModule('tracerChiffres')" class="btn-menu" type="button">
-                    <img src="images/bouton-chiffres-tracer.webp" alt="Tracer les chiffres" draggable="false">
+                <button onclick="ouvrirModule('tableauTrace')" class="btn-menu" type="button">
+                    <span style="font-size: 24px; color: white; background: rgba(0,0,0,0.5); padding: 20px; border-radius: 15px; border: 3px solid white; font-family: 'Mountains of Christmas', cursive;">Tableau de Tracé</span>
                 </button>
 
                 <button onclick="ouvrirModule('dessin')" class="btn-menu">
@@ -98,46 +94,17 @@
         </div>
     </div>
 
-    <div id="moduleTracerLettres" class="module-ecran" style="display: none;">
-        <div id="conteneurTracerLettres" style="position: relative;">
-            <canvas id="canvasTracerLettres" style="position: absolute; top: 0; left: 0;"></canvas>
-            <canvas id="canvasTracerLettresGuide" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
+    <div id="moduleTableauTrace" class="module-ecran" style="display: none;">
+        <div id="conteneurTableauTrace" style="position: relative; width: 100%; height: 100%; background: #000;">
+            <canvas id="canvasTableauTrace" style="position: absolute; top: 0; left: 0;"></canvas>
         </div>
-        <div class="barre-laterale">
-            <button class="btn-outil-special" onclick="retourMenu()" title="Retour au menu" aria-label="Retour au menu">🏠</button>
-            <hr class="separateur-lateral">
-            <div class="grille-couleurs">
-                <button class="pastille-laterale" style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
-                <button class="pastille-laterale" style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
-                <button class="pastille-laterale" style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
-                <button class="pastille-laterale" style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
-                <button class="pastille-laterale" style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
-                <button class="pastille-laterale" style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
-                <button class="pastille-laterale" style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
-                <button class="pastille-laterale btn-poubelle" onclick="effacerDessin()">🗑️</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="moduleTracerChiffres" class="module-ecran" style="display: none;">
-        <div id="conteneurTracerChiffres" style="position: relative;">
-            <canvas id="canvasTracerChiffres" style="position: absolute; top: 0; left: 0;"></canvas>
-            <canvas id="canvasTracerChiffresGuide" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
-        </div>
-        <div class="barre-laterale">
-            <button class="btn-outil-special" onclick="retourMenu()" title="Retour au menu" aria-label="Retour au menu">🏠</button>
-            <hr class="separateur-lateral">
-            <div class="grille-couleurs">
-                <button class="pastille-laterale" style="background: #ff0000;" onclick="changerCouleur('#ff0000')"></button>
-                <button class="pastille-laterale" style="background: #00ff00;" onclick="changerCouleur('#00ff00')"></button>
-                <button class="pastille-laterale" style="background: #0000ff;" onclick="changerCouleur('#0000ff')"></button>
-                <button class="pastille-laterale" style="background: #ff00ff;" onclick="changerCouleur('#ff00ff')"></button>
-                <button class="pastille-laterale" style="background: #ff9800;" onclick="changerCouleur('#ff9800')"></button>
-                <button class="pastille-laterale" style="background: #ffff00;" onclick="changerCouleur('#ffff00')"></button>
-                <button class="pastille-laterale" style="background: #ffffff;" onclick="changerCouleur('#ffffff')"></button>
-                <button class="pastille-laterale btn-poubelle" onclick="effacerDessin()">🗑️</button>
-            </div>
-        </div>
+        <button class="btn-retour-tableau" onclick="retourMenu()" aria-label="Retour au menu"
+            style="position: fixed; top: 20px; left: 20px; z-index: 2000; width: 70px; height: 70px; font-size: 35px; background: #311b92; border: 3px solid white; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
+            🏠
+        </button>
+        <button onclick="effacerTableauTrace()" style="position: fixed; top: 20px; right: 20px; z-index: 2000; width: 70px; height: 70px; font-size: 35px; background: #555; border: 3px solid white; border-radius: 50%; color: white; cursor: pointer; display: flex; align-items: center; justify-content: center; pointer-events: auto;">
+            🗑️
+        </button>
     </div>
 
     <div id="moduleDessin" class="module-ecran" style="display: none;">
@@ -257,6 +224,7 @@
     <script src="js/memory.js"></script>
     <script src="js/piano.js"></script>
     <script src="js/casse-tete.js"></script>
+    <script src="js/tableau-trace.js"></script>
 
 </body>
 </html>
