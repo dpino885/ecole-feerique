@@ -127,13 +127,12 @@ window.addEventListener('DOMContentLoaded', () => {
     brancherEvenementsCanvas(document.getElementById('canvasDessin'));
 });
 
-// Débloquer l'audio au premier clic/touche
+// Débloquer l'audio au premier contact (souris, tactile, stylet)
 function debloquerAudio() {
     initialiserVoix();
-    // Sur certains iOS, il faut parfois plusieurs interactions ou un speak immédiat
+    console.log("VoiceManager: Audio déverrouillé via interaction utilisateur");
 }
-window.addEventListener('mousedown', debloquerAudio, { once: true, capture: true });
-window.addEventListener('touchstart', debloquerAudio, { once: true, capture: true });
+document.addEventListener('pointerdown', debloquerAudio, { once: true, capture: true });
 
 const IDS_MODULES_JEU = [
     'moduleChiffres',
