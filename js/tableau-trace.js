@@ -7,12 +7,27 @@ const conteneurTableau = document.getElementById('conteneurTableauTrace');
 const canvasMask = document.createElement('canvas');
 const ctxMask = canvasMask.getContext('2d', { willReadFrequently: true });
 
+// Canevas persistant pour le dessin de l'utilisateur
+const canvasDessinPersistant = document.createElement('canvas');
+const ctxDessinPersistant = canvasDessinPersistant.getContext('2d');
+
 let dessineTableau = false;
 let evenementsTableauBranches = false;
-const charactersTableau = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+let modeTrace = 'lettres'; // 'lettres' ou 'chiffres'
+let indexCaractereActuel = 0;
 
-function initialiserTableauTrace() {
+const CHIFFRES = "0123456789".split("");
+const LETTRES = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+
+function getCaracteresActuels() {
+    return modeTrace === 'chiffres' ? CHIFFRES : LETTRES;
+}
+
+function initialiserTableauTrace(mode) {
     if (!canvasTableau || !ctxTableau || !conteneurTableau) return;
+
+    if (mode) modeTrace = mode;
+    indexCaractereActuel = 0;
 
     canvasTableau.width = conteneurTableau.clientWidth;
     canvasTableau.height = conteneurTableau.clientHeight;
@@ -20,11 +35,18 @@ function initialiserTableauTrace() {
     canvasMask.width = canvasTableau.width;
     canvasMask.height = canvasTableau.height;
 
+    canvasDessinPersistant.width = canvasTableau.width;
+    canvasDessinPersistant.height = canvasTableau.height;
+
     ctxTableau.lineJoin = 'round';
     ctxTableau.lineCap = 'round';
-    ctxTableau.lineWidth = 15;
+    ctxTableau.lineWidth = 20;
 
-    preparerFantomes();
+    ctxDessinPersistant.lineJoin = 'round';
+    ctxDessinPersistant.lineCap = 'round';
+    ctxDessinPersistant.lineWidth = 20;
+
+    preparerFantome();
 
     if (!evenementsTableauBranches) {
         brancherEvenementsTableau();
@@ -32,55 +54,75 @@ function initialiserTableauTrace() {
     }
 }
 
-function preparerFantomes() {
-    ctxMask.clearRect(0, 0, canvasMask.width, canvasMask.height);
+function preparerFantome() {
+    const caracteres = getCaracteresActuels();
+    const char = caracteres[indexCaractereActuel];
 
-    // On dessine les fantômes sur le canvas principal et sur le masque
+    const x = canvasTableau.width / 2;
+    const y = canvasTableau.height / 2;
+    const fontSize = Math.min(canvasTableau.width, canvasTableau.height) * 0.8;
+
+    // Mise à jour du masque une seule fois par caractère
+    ctxMask.save();
+    ctxMask.clearRect(0, 0, canvasMask.width, canvasMask.height);
+    ctxMask.fillStyle = "white";
+    ctxMask.textAlign = "center";
+    ctxMask.textBaseline = "middle";
+    ctxMask.font = `bold ${fontSize}px Arial Black`;
+    ctxMask.fillText(char, x, y);
+    ctxMask.restore();
+
+    ctxDessinPersistant.clearRect(0, 0, canvasDessinPersistant.width, canvasDessinPersistant.height);
+
+    dessinerTout();
+    parlerCaractere(char);
+}
+
+function dessinerTout() {
+    const caracteres = getCaracteresActuels();
+    const char = caracteres[indexCaractereActuel];
+
     ctxTableau.clearRect(0, 0, canvasTableau.width, canvasTableau.height);
 
-    const cols = 9;
-    const rows = 4;
-
-    // On laisse une marge en haut pour les boutons
-    const marginTop = 80;
-    const availableHeight = canvasTableau.height - marginTop;
-
-    const cellWidth = canvasTableau.width / cols;
-    const cellHeight = availableHeight / rows;
+    // Dessin du fantôme
+    const x = canvasTableau.width / 2;
+    const y = canvasTableau.height / 2;
 
     ctxTableau.save();
-    ctxTableau.fillStyle = "rgba(255, 255, 255, 0.2)";
+    ctxTableau.fillStyle = "rgba(255, 255, 255, 0.15)";
     ctxTableau.textAlign = "center";
     ctxTableau.textBaseline = "middle";
 
-    ctxMask.save();
-    ctxMask.fillStyle = "white"; // Couleur pleine pour le masque de détection
-    ctxMask.textAlign = "center";
-    ctxMask.textBaseline = "middle";
-
-    const fontSize = Math.min(cellWidth, cellHeight) * 0.7;
+    const fontSize = Math.min(canvasTableau.width, canvasTableau.height) * 0.8;
     ctxTableau.font = `bold ${fontSize}px Arial Black`;
-    ctxMask.font = `bold ${fontSize}px Arial Black`;
-
-    charactersTableau.forEach((char, index) => {
-        const col = index % cols;
-        const row = Math.floor(index / cols);
-        const x = col * cellWidth + cellWidth / 2;
-        const y = marginTop + row * cellHeight + cellHeight / 2;
-
-        ctxTableau.fillText(char, x, y);
-        ctxMask.fillText(char, x, y);
-    });
-
+    ctxTableau.fillText(char, x, y);
     ctxTableau.restore();
-    ctxMask.restore();
+
+    // Dessin des traits de l'utilisateur
+    ctxTableau.drawImage(canvasDessinPersistant, 0, 0);
 }
 
 function effacerTableauTrace() {
-    if (!ctxTableau) return;
-    // On efface seulement les traits, pas les fantômes
-    // Pour simplifier, on redessine tout
-    preparerFantomes();
+    ctxDessinPersistant.clearRect(0, 0, canvasDessinPersistant.width, canvasDessinPersistant.height);
+    dessinerTout();
+}
+
+function caractereSuivant() {
+    const caracteres = getCaracteresActuels();
+    indexCaractereActuel = (indexCaractereActuel + 1) % caracteres.length;
+    preparerFantome();
+}
+
+function caracterePrecedent() {
+    const caracteres = getCaracteresActuels();
+    indexCaractereActuel = (indexCaractereActuel - 1 + caracteres.length) % caracteres.length;
+    preparerFantome();
+}
+
+function parlerCaractere(char) {
+    if (typeof parler === 'function') {
+        parler(char);
+    }
 }
 
 function brancherEvenementsTableau() {
@@ -116,14 +158,13 @@ function brancherEvenementsTableau() {
     }, { passive: false });
 }
 
+let dernierX, dernierY;
+
 function demarrerTraceTableau(e) {
     dessineTableau = true;
     const rect = canvasTableau.getBoundingClientRect();
-    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
-
-    ctxTableau.beginPath();
-    ctxTableau.moveTo(x, y);
+    dernierX = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    dernierY = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
 }
 
 function tracerTableau(e) {
@@ -135,22 +176,26 @@ function tracerTableau(e) {
 
     // Détection de collision avec le masque
     const pixel = ctxMask.getImageData(x, y, 1, 1).data;
-    const estDansFantome = pixel[3] > 0; // Si l'alpha est > 0, on est sur une lettre/chiffre
+    const estDansFantome = pixel[3] > 0;
 
-    ctxTableau.strokeStyle = estDansFantome ? "#00ff00" : "#ff0000";
+    const couleur = estDansFantome ? "#00ff00" : "#ff0000";
 
-    ctxTableau.lineTo(x, y);
-    ctxTableau.stroke();
+    ctxDessinPersistant.strokeStyle = couleur;
+    ctxDessinPersistant.beginPath();
+    ctxDessinPersistant.moveTo(dernierX, dernierY);
+    ctxDessinPersistant.lineTo(x, y);
+    ctxDessinPersistant.stroke();
 
-    // On recommence un chemin à chaque segment pour pouvoir changer de couleur
-    ctxTableau.beginPath();
-    ctxTableau.moveTo(x, y);
+    dernierX = x;
+    dernierY = y;
+
+    dessinerTout();
 
     // Particules
     if (typeof Particule !== 'undefined') {
         for (let i = 0; i < 2; i++) {
             let p = new Particule(x + rect.left, y + rect.top);
-            p.couleur = ctxTableau.strokeStyle;
+            p.couleur = couleur;
             particules.push(p);
         }
     }
@@ -162,3 +207,5 @@ function arreterTraceTableau() {
 
 window.initialiserTableauTrace = initialiserTableauTrace;
 window.effacerTableauTrace = effacerTableauTrace;
+window.caractereSuivant = caractereSuivant;
+window.caracterePrecedent = caracterePrecedent;

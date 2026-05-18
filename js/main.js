@@ -188,10 +188,15 @@ function ouvrirModule(type, options) {
             initialiserDessin();
             parler("Dessine avec tes doigts magiques !");
             break;
-        case 'tableauTrace':
+        case 'tracerLettres':
             document.getElementById('moduleTableauTrace').style.display = 'flex';
-            initialiserTableauTrace();
-            parler("Trace les lettres et les chiffres !");
+            initialiserTableauTrace('lettres');
+            parler("Trace les lettres !");
+            break;
+        case 'tracerChiffres':
+            document.getElementById('moduleTableauTrace').style.display = 'flex';
+            initialiserTableauTrace('chiffres');
+            parler("Trace les chiffres !");
             break;
         case 'histoire':
             document.getElementById('moduleHistoire').style.display = 'flex';
