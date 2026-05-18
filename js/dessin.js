@@ -92,6 +92,28 @@ function changerCouleur(c) {
     parler("Couleur magique !");
 }
 
+function initialiserDessin() {
+    const { canvas, ctx, conteneur, moduleEl } = configDessin;
+    if (!canvas || !ctx || !conteneur) return;
+
+    // Ajuster à la taille réelle du conteneur parent
+    canvas.width = conteneur.offsetWidth;
+    canvas.height = conteneur.offsetHeight;
+
+    canvasMasque.width = canvas.width;
+    canvasMasque.height = canvas.height;
+
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 25;
+
+    if (moduleEl) moduleEl.style.zIndex = '500';
+
+    if (typeActuel !== 'libre') {
+        dessinerFantome();
+    }
+}
+
 function effacerDessin(changerDeLettre = true) {
     const { canvas, ctx, ctxGuide, canvasGuide } = configDessin;
     if (!canvas || !ctx) return;

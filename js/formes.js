@@ -23,12 +23,10 @@ let formeCible = null;
 
 // Cette fonction fait le pont entre le menu et le jeu
 function ouvrirModuleFormes() {
-    console.log("Démarrage du jeu des formes...");
-    // On s'assure que la zone est vide avant de commencer
     const zone = document.getElementById('zoneOptionsFormes');
     if (zone) {
         zone.innerHTML = '';
-        nouveauDefiForme(); // On lance le tout premier défi
+        nouveauDefiForme();
     }
 }
 function nouveauDefiForme() {

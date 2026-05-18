@@ -180,18 +180,15 @@ function genererAlphabet() {
  * Lancé par le gros bouton "JOUER"
  */
 function demarrerAlphabet() {
-    console.log("Tentative de démarrage de l'alphabet..."); // Pour déboguer
     const ecran = document.getElementById('ecranDepartAlphabet');
     const zone = document.getElementById('zoneLettreMagique');
 
     if (ecran && zone) {
-        ecran.style.setProperty('display', 'none', 'important');
-        zone.style.setProperty('display', 'flex', 'important');
-        indexLettreActuelle = 0; // On s'assure de repartir à A
+        ecran.style.display = 'none';
+        zone.style.display = 'flex';
+        indexLettreActuelle = 0;
         indexMotActuel = 0;
         afficherLettre();
-    } else {
-        console.error("Erreur : Les IDs ecranDepartAlphabet ou zoneLettreMagique sont introuvables !");
     }
 }
 
@@ -201,10 +198,7 @@ function demarrerAlphabet() {
 function afficherLettre() {
     const alphabet = Object.keys(dictionnaireAlphabet);
     const lettre = alphabet[indexLettreActuelle];
-    const dataArray = dictionnaireAlphabet[lettre];
-    const data = dataArray[indexMotActuel];
-    const mot = data.mot;
-    const emoji = data.emoji;
+    const data = dictionnaireAlphabet[lettre][indexMotActuel];
 
     const bouton = document.getElementById('grandeLettre');
     const emojiExemple = document.getElementById('emojiExemple');
@@ -212,26 +206,20 @@ function afficherLettre() {
 
     if (bouton && texteMot && emojiExemple) {
         bouton.innerText = lettre;
-        texteMot.innerText = mot;
-        emojiExemple.innerText = emoji;
+        texteMot.innerText = data.mot;
+        emojiExemple.innerText = data.emoji;
 
-        // Remove the bounce class to reset the animation
         emojiExemple.classList.remove('bounce-animation');
-        // Force a reflow to restart the animation
         void emojiExemple.offsetWidth;
-        // Add the bounce class back
         emojiExemple.classList.add('bounce-animation');
 
-        // Couleur dynamique (arc-en-ciel au fil de l'alphabet)
         const teinte = (indexLettreActuelle * (360 / 26));
         const couleurBouton = `hsl(${teinte}, 70%, 60%)`;
         bouton.style.background = `linear-gradient(135deg, ${couleurBouton}, hsl(${teinte}, 80%, 40%))`;
         bouton.style.setProperty('--couleur-scintillement', couleurBouton);
 
-        // La fée parle
-        parler(`${lettre.toUpperCase()} comme ${mot}`);
+        parler(`${lettre} comme ${data.mot}`);
 
-        // Explosion d'étoiles au centre
         for (let i = 0; i < 20; i++) {
             const p = new Particule(window.innerWidth / 2, window.innerHeight / 2);
             p.couleur = `hsl(${teinte}, 100%, 70%)`;

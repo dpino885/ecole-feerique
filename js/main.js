@@ -121,11 +121,18 @@ if (btnPleinEcran) {
     window.addEventListener('touchend', annulerPressionPleinEcran);
 }
 
-// Initialiser les voix au premier clic/touche de l'utilisateur
+// Initialiser les voix et les événements au chargement
+window.addEventListener('DOMContentLoaded', () => {
+    // Brancher les événements de dessin
+    brancherEvenementsCanvas(document.getElementById('canvasDessin'));
+    brancherEvenementsCanvas(document.getElementById('canvasTracerLettres'));
+    brancherEvenementsCanvas(document.getElementById('canvasTracerChiffres'));
+});
+
+// Débloquer l'audio au premier clic/touche
 function debloquerAudio() {
     initialiserVoix();
 }
-// Utilisation de capture: true pour s'assurer que l'initialisation se fait AVANT les autres événements
 window.addEventListener('click', debloquerAudio, { once: true, capture: true });
 window.addEventListener('touchstart', debloquerAudio, { once: true, capture: true });
 
@@ -146,98 +153,96 @@ function ouvrirModule(type, options) {
     options = options || {};
     const menu = document.getElementById('menuPrincipal');
     const btnRetour = document.getElementById('btnRetourGlobal');
+
     if (menu) menu.style.display = 'none';
-    if (btnRetour) btnRetour.style.display = 'flex';
+
+    // Par défaut, on affiche le bouton retour global, sauf pour les modules qui ont leur propre bouton
+    const modulesAvecPropreRetour = ['dessin', 'tracerLettres', 'tracerChiffres', 'memory', 'piano', 'puzzle'];
+    if (btnRetour) {
+        btnRetour.style.display = modulesAvecPropreRetour.includes(type) ? 'none' : 'flex';
+    }
 
     IDS_MODULES_JEU.forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
 
-    if (type === 'chiffres') {
-        const el = document.getElementById('moduleChiffres');
-        if (el) el.style.display = 'block';
-        parler("Trouve les fées cachées et compte avec moi !");
-        initialiserJeuFées();
-    } else if (type === 'alphabet') {
-        const el = document.getElementById('moduleAlphabet');
-        if (el) el.style.display = 'flex';
-        genererAlphabet();
-        parler("L'alphabet des fées !");
-    } else if (type === 'formes') {
-        const el = document.getElementById('moduleFormes');
-        if (el) el.style.display = 'flex';
-        parler("Le jardin des formes !");
-        ouvrirModuleFormes();
-    } else if (type === 'dessin') {
-        bindDessinSurface(SURFACE_LIBRE);
-        const el = document.getElementById('moduleDessin');
-        if (el) el.style.display = 'flex';
-        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
-        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
-        typeActuel = 'libre';
-        effacerDessin(false);
-        initialiserDessin();
-        parler("Dessine avec tes doigts magiques !");
-    } else if (type === 'tracerLettres') {
-        bindDessinSurface(SURFACE_LETTRES);
-        const el = document.getElementById('moduleTracerLettres');
-        if (el) el.style.display = 'flex';
-        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
-        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
-        typeActuel = 'lettre';
-        const lettre = options.lettre;
-        if (lettre && modelesLettres.indexOf(lettre) !== -1) {
-            indexModeleActuel = modelesLettres.indexOf(lettre);
-        } else {
+    switch(type) {
+        case 'chiffres':
+            document.getElementById('moduleChiffres').style.display = 'block';
+            parler("Trouve les fées cachées et compte avec moi !");
+            initialiserJeuFées();
+            break;
+        case 'alphabet':
+            document.getElementById('moduleAlphabet').style.display = 'flex';
+            genererAlphabet();
+            parler("L'alphabet des fées !");
+            break;
+        case 'formes':
+            document.getElementById('moduleFormes').style.display = 'flex';
+            parler("Le jardin des formes !");
+            ouvrirModuleFormes();
+            break;
+        case 'dessin':
+            bindDessinSurface(SURFACE_LIBRE);
+            document.getElementById('moduleDessin').style.display = 'flex';
+            typeActuel = 'libre';
+            effacerDessin(false);
+            initialiserDessin();
+            parler("Dessine avec tes doigts magiques !");
+            break;
+        case 'tracerLettres':
+            bindDessinSurface(SURFACE_LETTRES);
+            document.getElementById('moduleTracerLettres').style.display = 'flex';
+            typeActuel = 'lettre';
+            indexModeleActuel = (options.lettre && modelesLettres.includes(options.lettre))
+                ? modelesLettres.indexOf(options.lettre) : 0;
+            initialiserDessin();
+            effacerDessin(false);
+            afficherNouveauModele();
+            break;
+        case 'tracerChiffres':
+            bindDessinSurface(SURFACE_CHIFFRES);
+            document.getElementById('moduleTracerChiffres').style.display = 'flex';
+            typeActuel = 'chiffre';
             indexModeleActuel = 0;
-        }
-        initialiserDessin();
-        effacerDessin(false);
-        afficherNouveauModele();
-    } else if (type === 'tracerChiffres') {
-        bindDessinSurface(SURFACE_CHIFFRES);
-        const el = document.getElementById('moduleTracerChiffres');
-        if (el) el.style.display = 'flex';
-        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
-        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
-        typeActuel = 'chiffre';
-        indexModeleActuel = 0;
-        initialiserDessin();
-        effacerDessin(false);
-        afficherNouveauModele();
-    } else if (type === 'histoire') {
-        const el = document.getElementById('moduleHistoire');
-        if (el) el.style.display = 'flex';
-        genererSelectionHistoires();
-    } else if (type === 'memory') {
-        const el = document.getElementById('moduleMemory');
-        if (el) el.style.display = 'flex';
-        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
-        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
-        initialiserMemory();
-    } else if (type === 'piano') {
-        const el = document.getElementById('modulePiano');
-        if (el) el.style.display = 'flex';
-        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
-        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
-        initialiserPiano();
-    } else if (type === 'puzzle') {
-        const el = document.getElementById('moduleCasseTete');
-        if (el) el.style.display = 'flex';
-        const btnRetourGlobal = document.getElementById('btnRetourGlobal');
-        if (btnRetourGlobal) btnRetourGlobal.style.display = 'none';
-        initialiserModulePuzzle();
+            initialiserDessin();
+            effacerDessin(false);
+            afficherNouveauModele();
+            break;
+        case 'histoire':
+            document.getElementById('moduleHistoire').style.display = 'flex';
+            genererSelectionHistoires();
+            break;
+        case 'memory':
+            document.getElementById('moduleMemory').style.display = 'flex';
+            initialiserMemory();
+            break;
+        case 'piano':
+            document.getElementById('modulePiano').style.display = 'flex';
+            initialiserPiano();
+            break;
+        case 'puzzle':
+            document.getElementById('moduleCasseTete').style.display = 'flex';
+            initialiserModulePuzzle();
+            break;
     }
 }
 
 function retourMenu() {
     const btnRetour = document.getElementById('btnRetourGlobal');
     if (btnRetour) btnRetour.style.display = 'none';
+
     IDS_MODULES_JEU.forEach((id) => {
         const el = document.getElementById(id);
         if (el) el.style.display = 'none';
     });
+
     const menu = document.getElementById('menuPrincipal');
     if (menu) menu.style.display = 'flex';
+
+    // Nettoyage voix si nécessaire
+    if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+    }
 }
