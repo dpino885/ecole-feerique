@@ -56,6 +56,11 @@ const VoiceManager = {
         return this.voixPromise;
     },
 
+    /**
+     * Déverrouille le moteur de synthèse vocale.
+     * Pour une application native Android (WebView), utiliser :
+     * webView.getSettings().setMediaPlaybackRequiresUserGesture(false);
+     */
     unlock() {
         if (this.initialisee) {
             window.speechSynthesis.resume();
@@ -84,53 +89,48 @@ const VoiceManager = {
         // Nettoyage des processus en cours
         this.stopper();
 
-        // Petit délai pour laisser le temps au moteur de se réinitialiser (crucial sur Android)
-        setTimeout(async () => {
-            if (!this.voixFée) {
-                await this.chargerVoix();
-            }
+        // Android exige une exécution strictement synchrone pour ne pas briser la chaîne de confiance
+        const msg = new SpeechSynthesisUtterance(message);
+        this.derniereUtterance = msg; // Protection Garbage Collection
 
-            const msg = new SpeechSynthesisUtterance(message);
-            this.derniereUtterance = msg; // Protection Garbage Collection
+        if (this.voixFée) {
+            msg.voice = this.voixFée;
+            msg.lang = this.voixFée.lang;
+        } else {
+            // Langue par défaut immédiate si la voix n'est pas encore chargée
+            msg.lang = 'fr-CA';
+        }
 
-            if (this.voixFée) {
-                msg.voice = this.voixFée;
-                msg.lang = this.voixFée.lang;
-            } else {
-                msg.lang = 'fr-FR';
-            }
+        // Paramètres optimisés
+        msg.pitch = 1.1;
+        msg.rate = 0.95;
+        msg.volume = 1.0;
 
-            // Paramètres optimisés
-            msg.pitch = 1.1;
-            msg.rate = 0.95;
-            msg.volume = 1.0;
+        msg.onstart = () => {
+            // Heartbeat Android : empêche la coupure après 15 secondes
+            if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
+            this.intervalHeartbeat = setInterval(() => {
+                if (window.speechSynthesis.speaking) {
+                    window.speechSynthesis.resume();
+                } else {
+                    clearInterval(this.intervalHeartbeat);
+                }
+            }, 500);
+        };
 
-            msg.onstart = () => {
-                // Heartbeat Android : empêche la coupure après 15 secondes
-                if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
-                this.intervalHeartbeat = setInterval(() => {
-                    if (window.speechSynthesis.speaking) {
-                        window.speechSynthesis.resume();
-                    } else {
-                        clearInterval(this.intervalHeartbeat);
-                    }
-                }, 500);
-            };
+        msg.onend = () => {
+            if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
+            this.derniereUtterance = null;
+        };
 
-            msg.onend = () => {
-                if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
-                this.derniereUtterance = null;
-            };
+        msg.onerror = (event) => {
+            console.error("VoiceManager: Erreur TTS", event);
+            if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
+            // Si erreur, on tente de reset le moteur
+            window.speechSynthesis.resume();
+        };
 
-            msg.onerror = (event) => {
-                console.error("VoiceManager: Erreur TTS", event);
-                if (this.intervalHeartbeat) clearInterval(this.intervalHeartbeat);
-                // Si erreur, on tente de reset le moteur
-                window.speechSynthesis.resume();
-            };
-
-            window.speechSynthesis.speak(msg);
-        }, 100);
+        window.speechSynthesis.speak(msg);
     },
 
     stopper() {
