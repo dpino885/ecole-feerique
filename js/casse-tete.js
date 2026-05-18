@@ -81,15 +81,17 @@ function preparerJeu(img) {
     // Calculer les dimensions pour que le puzzle tienne dans l'écran
     const maxWidth = window.innerWidth * 0.8;
     const maxHeight = window.innerHeight * 0.7;
-    const ratioImg = img.width / img.height;
 
     let puzzleWidth, puzzleHeight;
-    if (maxWidth / ratioImg <= maxHeight) {
+    const imgRatio = img.width / img.height;
+    const screenRatio = maxWidth / maxHeight;
+
+    if (imgRatio > screenRatio) {
         puzzleWidth = maxWidth;
-        puzzleHeight = maxWidth / ratioImg;
+        puzzleHeight = maxWidth / imgRatio;
     } else {
         puzzleHeight = maxHeight;
-        puzzleWidth = maxHeight * ratioImg;
+        puzzleWidth = maxHeight * imgRatio;
     }
 
     zonePlateau.style.width = puzzleWidth + 'px';
@@ -100,13 +102,9 @@ function preparerJeu(img) {
 
     piecesPuzzle = [];
 
-    // Définir les types d'onglets pour chaque pièce (0: plat, 1: mâle, -1: femelle)
-    const horizontalTabs = Array.from({ length: rows }, () => Array.from({ length: cols - 1 }, () => Math.random() < 0.5 ? 1 : -1));
-    const verticalTabs = Array.from({ length: rows - 1 }, () => Array.from({ length: cols }, () => Math.random() < 0.5 ? 1 : -1));
-
     for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
-            const piece = creerPiece(img, r, c, rows, cols, pieceWidth, pieceHeight, horizontalTabs, verticalTabs);
+            const piece = creerPiece(img, r, c, rows, cols, pieceWidth, pieceHeight);
             piecesPuzzle.push(piece);
             zonePieces.appendChild(piece.element);
         }
@@ -115,14 +113,14 @@ function preparerJeu(img) {
     melangerPieces(puzzleWidth, puzzleHeight);
 }
 
-function creerPiece(img, r, c, rows, cols, w, h, hTabs, vTabs) {
+function creerPiece(img, r, c, rows, cols, w, h) {
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
 
-    // On ajoute de la marge pour les onglets
-    const tabSize = Math.min(w, h) * 0.2;
-    canvas.width = w + tabSize * 2;
-    canvas.height = h + tabSize * 2;
+    // Simple carré, pas d'onglets
+    const tabSize = 0;
+    canvas.width = w;
+    canvas.height = h;
 
     const pieceData = {
         row: r,
@@ -135,59 +133,28 @@ function creerPiece(img, r, c, rows, cols, w, h, hTabs, vTabs) {
         element: canvas
     };
 
-    // Dessiner la forme de la pièce
+    // Dessiner la forme de la pièce (rectangle simple)
     ctx.beginPath();
-    const x = tabSize;
-    const y = tabSize;
-
-    // Haut
-    ctx.moveTo(x, y);
-    if (r > 0) {
-        dessinerOnglet(ctx, x, y, x + w, y, vTabs[r - 1][c], 'H');
-    } else {
-        ctx.lineTo(x + w, y);
-    }
-
-    // Droite
-    if (c < cols - 1) {
-        dessinerOnglet(ctx, x + w, y, x + w, y + h, hTabs[r][c], 'V');
-    } else {
-        ctx.lineTo(x + w, y + h);
-    }
-
-    // Bas
-    if (r < rows - 1) {
-        dessinerOnglet(ctx, x + w, y + h, x, y + h, vTabs[r][c], 'H');
-    } else {
-        ctx.lineTo(x, y + h);
-    }
-
-    // Gauche
-    if (c > 0) {
-        dessinerOnglet(ctx, x, y + h, x, y, hTabs[r][c - 1], 'V');
-    } else {
-        ctx.lineTo(x, y);
-    }
-
+    ctx.rect(0, 0, w, h);
     ctx.closePath();
     ctx.clip();
 
-    // Dessiner l'image
+    // Dessiner l'image (pleine image, pas de recadrage forcé en carré)
     const sourceX = (c * img.width) / cols;
     const sourceY = (r * img.height) / rows;
     const sourceW = img.width / cols;
     const sourceH = img.height / rows;
 
-    ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, x, y, w, h);
+    ctx.drawImage(img, sourceX, sourceY, sourceW, sourceH, 0, 0, w, h);
 
-    // Bordure
-    ctx.strokeStyle = "rgba(255,255,255,0.5)";
+    // Bordure noire légère
+    ctx.strokeStyle = "#000000";
     ctx.lineWidth = 2;
     ctx.stroke();
 
     canvas.className = 'piece-puzzle';
-    canvas.style.width = (w + tabSize * 2) + 'px';
-    canvas.style.height = (h + tabSize * 2) + 'px';
+    canvas.style.width = w + 'px';
+    canvas.style.height = h + 'px';
     canvas.style.left = '0px';
     canvas.style.top = '0px';
 
@@ -197,32 +164,6 @@ function creerPiece(img, r, c, rows, cols, w, h, hTabs, vTabs) {
 
     pieceData.tabSize = tabSize;
     return pieceData;
-}
-
-function dessinerOnglet(ctx, x1, y1, x2, y2, type, orientation) {
-    const midX = (x1 + x2) / 2;
-    const midY = (y1 + y2) / 2;
-    const size = Math.sqrt(Math.pow(x2 - x1, 2) + Math.pow(y2 - y1, 2)) * 0.2;
-
-    if (orientation === 'H') {
-        const direction = (x2 > x1) ? 1 : -1;
-        ctx.lineTo(midX - size * direction, y1);
-        ctx.bezierCurveTo(
-            midX - size * direction, y1 - size * type,
-            midX + size * direction, y1 - size * type,
-            midX + size * direction, y1
-        );
-        ctx.lineTo(x2, y2);
-    } else {
-        const direction = (y2 > y1) ? 1 : -1;
-        ctx.lineTo(x1, midY - size * direction);
-        ctx.bezierCurveTo(
-            x1 + size * type, midY - size * direction,
-            x1 + size * type, midY + size * direction,
-            x1, midY + size * direction
-        );
-        ctx.lineTo(x2, y2);
-    }
 }
 
 function melangerPieces(puzzleWidth, puzzleHeight) {
