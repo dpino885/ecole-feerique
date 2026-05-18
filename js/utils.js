@@ -2,34 +2,49 @@
 let voixFée = null;
 let voixInitialisee = false;
 let derniereUtterance = null; // Garder une référence pour éviter le garbage collection sur Android
+let utteranceSilencieuse = null; // Référence persistante pour le déblocage
 
 function initialiserVoix() {
     if (!("speechSynthesis" in window) || voixInitialisee) return;
 
+    // Forcer le resume avant tout sur Android
+    window.speechSynthesis.resume();
+
     // Charger les voix immédiatement
     chargerVoix();
 
-    // Débloquer l'audio sur mobile avec une utterance silencieuse
-    const silence = new SpeechSynthesisUtterance("");
-    silence.volume = 0;
-    window.speechSynthesis.speak(silence);
+    // Débloquer l'audio sur mobile avec une utterance quasi-silencieuse
+    // Utiliser un point ou un petit mot car certains Android ignorent l'espace vide
+    utteranceSilencieuse = new SpeechSynthesisUtterance(".");
+    utteranceSilencieuse.volume = 0.001;
+    utteranceSilencieuse.rate = 10;
+
+    try {
+        // Certains navigateurs Android nécessitent un resume avant le premier speak
+        window.speechSynthesis.resume();
+        window.speechSynthesis.speak(utteranceSilencieuse);
+    } catch (e) {
+        console.error("Erreur initialisation voix:", e);
+    }
 
     if (speechSynthesis.onvoiceschanged !== undefined) {
         speechSynthesis.onvoiceschanged = chargerVoix;
     }
 
     voixInitialisee = true;
-    console.log("Système vocal initialisé");
 }
 
 function chargerVoix() {
+    if (!("speechSynthesis" in window)) return;
+
     const voix = window.speechSynthesis.getVoices();
     if (!voix || voix.length === 0) return;
 
     // Priorité à fr-CA, puis fr-FR, puis n'importe quelle voix française
-    voixFée = voix.find(v => v.lang === 'fr-CA' || v.lang === 'fr_CA') ||
-              voix.find(v => v.lang === 'fr-FR' || v.lang === 'fr_FR') ||
-              voix.find(v => v.lang.startsWith('fr'));
+    voixFée = voix.find(v => {
+        const l = v.lang.toLowerCase().replace('_', '-');
+        return l === 'fr-ca' || l === 'fr-fr';
+    }) || voix.find(v => v.lang.toLowerCase().startsWith('fr'));
 
     if (voixFée) {
         console.log("Voix sélectionnée :", voixFée.name, voixFée.lang);
@@ -39,46 +54,53 @@ function chargerVoix() {
 function parler(message) {
     if (!("speechSynthesis" in window)) return;
 
-    // S'assurer que le système est initialisé (au cas où le premier clic a été manqué)
+    // S'assurer que le système est initialisé
     if (!voixInitialisee) initialiserVoix();
-
-    // Annuler tout discours en cours
-    window.speechSynthesis.cancel();
-
-    // Re-tenter de charger les voix si aucune n'est trouvée (asynchronisme mobile)
     if (!voixFée) chargerVoix();
 
-    // Petit délai pour assurer que le cancel est bien traité sur certains Android/Silk
+    // Sur Android, cancel() est parfois capricieux. On resume avant pour être sûr de débloquer.
+    window.speechSynthesis.resume();
+    window.speechSynthesis.cancel();
+
+    // Petit délai pour assurer que le cancel est bien traité par le moteur
     setTimeout(() => {
         const msg = new SpeechSynthesisUtterance(message);
-        derniereUtterance = msg; // Référence globale pour éviter le GC sur Android
+        derniereUtterance = msg; // Protection indispensable contre le Garbage Collection sur Android
 
         if (voixFée) {
             msg.voice = voixFée;
-        } else {
-            msg.lang = 'fr-FR'; // Fallback plus générique que fr-CA
         }
-
-        msg.pitch = 1.2;
-        msg.rate = 1.0;
+        msg.lang = 'fr-FR';
+        msg.pitch = 1.1;
+        msg.rate = 0.95;
         msg.volume = 1.0;
 
-        // Fix Android : Toujours appeler resume() avant speak() car l'engine se met parfois en pause
-        if (window.speechSynthesis.paused) {
+        // Fix Android : force le resume pendant la lecture pour éviter les coupures (bug des 15 secondes)
+        let intervalHeartbeat = null;
+        msg.onstart = () => {
+            if (intervalHeartbeat) clearInterval(intervalHeartbeat);
+            intervalHeartbeat = setInterval(() => {
+                if (!window.speechSynthesis.speaking) {
+                    clearInterval(intervalHeartbeat);
+                } else {
+                    window.speechSynthesis.resume();
+                }
+            }, 500);
+        };
+
+        msg.onend = () => {
+            if (intervalHeartbeat) clearInterval(intervalHeartbeat);
+            derniereUtterance = null;
+        };
+
+        msg.onerror = (event) => {
+            console.error("Erreur TTS:", event);
+            if (intervalHeartbeat) clearInterval(intervalHeartbeat);
             window.speechSynthesis.resume();
-        }
+        };
 
         window.speechSynthesis.speak(msg);
-
-        // Deuxième fix Android : Si ça reste bloqué, forcer le resume périodiquement
-        const forceResume = setInterval(() => {
-            if (!window.speechSynthesis.speaking) {
-                clearInterval(forceResume);
-            } else {
-                window.speechSynthesis.resume();
-            }
-        }, 500);
-    }, 150); // Délai légèrement augmenté pour la stabilité
+    }, 150); // Délai légèrement augmenté pour Android
 }
 
 function brancherEvenementsCanvas(canvas) {
