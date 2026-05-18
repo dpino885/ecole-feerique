@@ -67,8 +67,10 @@ let estEnTrainDeCelebrer = false;
 function initialiserDessin() {
     const { canvas, ctx, canvasGuide, conteneur, moduleEl } = configDessin;
     if (!canvas || !ctx || !conteneur) return;
-    canvas.width = conteneur.clientWidth;
-    canvas.height = conteneur.clientHeight;
+
+    // Ajuster à la taille réelle du conteneur parent
+    canvas.width = conteneur.offsetWidth;
+    canvas.height = conteneur.offsetHeight;
 
     if (canvasGuide) {
         canvasGuide.width = canvas.width;
@@ -90,28 +92,6 @@ function initialiserDessin() {
 function changerCouleur(c) {
     couleurActuelle = c;
     parler("Couleur magique !");
-}
-
-function initialiserDessin() {
-    const { canvas, ctx, conteneur, moduleEl } = configDessin;
-    if (!canvas || !ctx || !conteneur) return;
-
-    // Ajuster à la taille réelle du conteneur parent
-    canvas.width = conteneur.offsetWidth;
-    canvas.height = conteneur.offsetHeight;
-
-    canvasMasque.width = canvas.width;
-    canvasMasque.height = canvas.height;
-
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-    ctx.lineWidth = 25;
-
-    if (moduleEl) moduleEl.style.zIndex = '500';
-
-    if (typeActuel !== 'libre') {
-        dessinerFantome();
-    }
 }
 
 function effacerDessin(changerDeLettre = true) {
