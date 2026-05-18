@@ -87,6 +87,15 @@ body {
     justify-content: center;
 }
 
+.nav-btn-trace {
+    transition: transform 0.2s, background 0.2s;
+}
+
+.nav-btn-trace:active {
+    transform: translateY(-50%) scale(0.9);
+    background: rgba(255,255,255,0.4) !important;
+}
+
 #moduleTableauTrace {
     flex-direction: column; /* On surcharge pour avoir le bouton en haut si besoin, mais ici c'est surtout le canvas qui prend tout */
 }
