@@ -177,7 +177,6 @@ function ouvrirModule(type, options) {
         case 'alphabet':
             document.getElementById('moduleAlphabet').style.display = 'flex';
             genererAlphabet();
-            parler("L'alphabet des fées !");
             break;
         case 'formes':
             document.getElementById('moduleFormes').style.display = 'flex';

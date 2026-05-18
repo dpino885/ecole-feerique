@@ -454,56 +454,6 @@ h1 {
     pointer-events: none; /* Laisse passer les clics vers les sous-éléments */
 }
 
-/* --- Écran de démarrage Alphabet (Centrage Absolu) --- */
-#ecranDepartAlphabet {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    
-    /* Le trio magique pour centrer */
-    display: flex !important;
-    justify-content: center !important; /* Centre horizontalement */
-    align-items: center !important;     /* Centre verticalement */
-    flex-direction: column;            /* Bouton au-dessus du texte */
-
-    background: transparent;           /* Laisse voir la forêt derrière */
-    z-index: 8000;                     /* Passe par-dessus les étoiles */
-    pointer-events: auto !important;
-}
-
-.btn-jouer-alphabet {
-    font-size: 3.5rem !important;    /* Taille de l'icône ▶️ réduite */
-    padding: 30px 70px !important;   /* Zone de clic confortable mais pas envahissante */
-    border-radius: 60px;             /* Bords arrondis proportionnels */
-    background: linear-gradient(135deg, #af4c93, #7d2e70);
-    color: white;
-    border: 6px solid #ffffff;
-    cursor: pointer;
-    box-shadow: 0 12px 25px rgba(0,0,0,0.4);
-    
-    /* On garde l'animation de battement car elle aide l'enfant */
-    animation: battement 2.5s infinite ease-in-out;
-    transition: transform 0.2s;
-    margin: 0 !important;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.btn-jouer-alphabet:active {
-    transform: scale(0.9);
-    background: #1b5e20;
-}
-
-/* Animation de "respiration" du bouton */
-@keyframes battement {
-    0% { transform: scale(1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-    50% { transform: scale(1.05); box-shadow: 0 30px 60px rgba(76, 175, 80, 0.6); }
-    100% { transform: scale(1); box-shadow: 0 20px 40px rgba(0,0,0,0.5); }
-}
-
 /* On force la zone de jeu à être en mode Flex et centré une fois ouverte */
 #zoneLettreMagique {
     display: none; /* Géré par le JS */
