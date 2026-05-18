@@ -1,4 +1,4 @@
-// 6. LOGIQUE DU DESSIN (AVEC POINTS DE PASSAGE)
+// 6. LOGIQUE DU DESSIN (AVEC POINTS DE PASSAGE ET TRAJECTOIRES)
 const SURFACE_LIBRE = {
     moduleId: 'moduleDessin',
     canvasId: 'canvasDessin',
@@ -7,11 +7,13 @@ const SURFACE_LIBRE = {
 const SURFACE_LETTRES = {
     moduleId: 'moduleTracerLettres',
     canvasId: 'canvasTracerLettres',
+    canvasGuideId: 'canvasTracerLettresGuide',
     conteneurId: 'conteneurTracerLettres'
 };
 const SURFACE_CHIFFRES = {
     moduleId: 'moduleTracerChiffres',
     canvasId: 'canvasTracerChiffres',
+    canvasGuideId: 'canvasTracerChiffresGuide',
     conteneurId: 'conteneurTracerChiffres'
 };
 
@@ -19,8 +21,19 @@ const configDessin = {
     moduleEl: null,
     canvas: null,
     ctx: null,
+    canvasGuide: null,
+    ctxGuide: null,
     conteneur: null
 };
+
+// État du tracé guidé
+let traitEnCours = 0;
+let pointEnCours = 0;
+let estEnTrainDeSuivre = false;
+let caractereActuel = '';
+
+const DISTANCE_ACTIVATION = 60;
+const DISTANCE_SUIVI = 80;
 
 function bindDessinSurface(spec) {
     configDessin.moduleEl = document.getElementById(spec.moduleId);
@@ -28,6 +41,8 @@ function bindDessinSurface(spec) {
     configDessin.ctx = configDessin.canvas
         ? configDessin.canvas.getContext('2d', { willReadFrequently: true })
         : null;
+    configDessin.canvasGuide = spec.canvasGuideId ? document.getElementById(spec.canvasGuideId) : null;
+    configDessin.ctxGuide = configDessin.canvasGuide ? configDessin.canvasGuide.getContext('2d') : null;
     configDessin.conteneur = document.getElementById(spec.conteneurId);
 }
 
@@ -49,45 +64,26 @@ bindDessinSurface(SURFACE_LIBRE);
 let enTrainDeDessiner = false;
 let estEnTrainDeCelebrer = false;
 
-
-// Seuils de complétion par caractère (pourcentage de la forme à couvrir)
-const SEUILS_TRACER = {
-    // Simple (10%)
-    'I': 0.10, 'J': 0.10, 'L': 0.10, '1': 0.10, '7': 0.10,
-    // Moyen (30%)
-    'C': 0.30, 'F': 0.30, 'O': 0.30, 'P': 0.30, 'T': 0.30, 'U': 0.30, 'V': 0.30, 'Y': 0.30, 'Z': 0.30,
-    '0': 0.30, '2': 0.30, '3': 0.30, '4': 0.30, '5': 0.30,
-    // Complexe (50%)
-    'A': 0.50, 'B': 0.50, 'D': 0.50, 'E': 0.50, 'G': 0.50, 'H': 0.50, 'K': 0.50, 'M': 0.50, 'N': 0.50,
-    'Q': 0.50, 'R': 0.50, 'S': 0.50, 'W': 0.50, 'X': 0.50, '6': 0.50, '8': 0.50, '9': 0.50
-};
-
-let caractereActuel = '';
-
-const canvasMasque = document.createElement('canvas');
-const ctxMasque = canvasMasque.getContext('2d', { willReadFrequently: true });
-let secteursActifs = []; // Secteurs qui contiennent une partie de la lettre
-let secteursTouches = new Set(); // Secteurs déjà parcourus par l'enfant
-const NB_SECTEURS = 15; // Précision de la grille (15x15)
-
 function initialiserDessin() {
-    const { canvas, ctx, conteneur, moduleEl } = configDessin;
+    const { canvas, ctx, canvasGuide, conteneur, moduleEl } = configDessin;
     if (!canvas || !ctx || !conteneur) return;
     canvas.width = conteneur.clientWidth;
     canvas.height = conteneur.clientHeight;
 
-    // Synchroniser le masque
-    canvasMasque.width = canvas.width;
-    canvasMasque.height = canvas.height;
+    if (canvasGuide) {
+        canvasGuide.width = canvas.width;
+        canvasGuide.height = canvas.height;
+    }
 
     ctx.lineJoin = 'round';
     ctx.lineCap = 'round';
-    ctx.lineWidth = 25; // Tracé un peu plus épais pour faciliter le remplissage
+    ctx.lineWidth = 25;
 
     if (moduleEl) moduleEl.style.zIndex = '500';
 
     if (typeActuel !== 'libre') {
         dessinerFantome();
+        rafraichirGuide();
     }
 }
 
@@ -97,10 +93,14 @@ function changerCouleur(c) {
 }
 
 function effacerDessin(changerDeLettre = true) {
-    const { canvas, ctx } = configDessin;
+    const { canvas, ctx, ctxGuide, canvasGuide } = configDessin;
     if (!canvas || !ctx) return;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    secteursTouches.clear();
+    if (ctxGuide && canvasGuide) ctxGuide.clearRect(0, 0, canvasGuide.width, canvasGuide.height);
+
+    traitEnCours = 0;
+    pointEnCours = 0;
+    estEnTrainDeSuivre = false;
 
     if (typeActuel !== 'libre' && changerDeLettre) {
         if (typeActuel === 'lettre') {
@@ -111,11 +111,15 @@ function effacerDessin(changerDeLettre = true) {
         afficherNouveauModele();
     } else if (typeActuel !== 'libre') {
         dessinerFantome();
+        rafraichirGuide();
     }
 }
 
 function afficherNouveauModele() {
-    secteursTouches.clear();
+    traitEnCours = 0;
+    pointEnCours = 0;
+    estEnTrainDeSuivre = false;
+
     let caractere =
         typeActuel === 'lettre'
             ? modelesLettres[indexModeleActuel]
@@ -123,8 +127,8 @@ function afficherNouveauModele() {
 
     caractereActuel = caractere;
 
-    genererMasqueEtSecteurs(caractere);
     dessinerFantome();
+    rafraichirGuide();
 
     let texte =
         typeActuel === 'lettre'
@@ -150,53 +154,70 @@ function dessinerFantome() {
     ctx.restore();
 }
 
-function genererMasqueEtSecteurs(caractere) {
+function getCoordsAbsolues(pt) {
     const { canvas } = configDessin;
-    if (!canvas || !ctxMasque) return;
+    if (!canvas) return {x:0, y:0};
+    return {
+        x: (canvas.width / 2) + pt.x,
+        y: (canvas.height / 2) + pt.y
+    };
+}
 
-    // S'assurer que le masque a la même taille que le canvas principal
-    canvasMasque.width = canvas.width;
-    canvasMasque.height = canvas.height;
+function rafraichirGuide() {
+    if (typeActuel === 'libre' || estEnTrainDeCelebrer) return;
+    const { ctxGuide, canvasGuide, moduleEl } = configDessin;
+    if (!ctxGuide || !canvasGuide || !moduleEl || moduleEl.style.display === 'none') return;
 
-    // 1. Préparer le masque (on dessine la lettre en blanc sur fond noir)
-    ctxMasque.save();
-    ctxMasque.fillStyle = "black";
-    ctxMasque.fillRect(0, 0, canvasMasque.width, canvasMasque.height);
+    ctxGuide.clearRect(0, 0, canvasGuide.width, canvasGuide.height);
 
-    ctxMasque.fillStyle = "white";
-    ctxMasque.strokeStyle = "white";
-    ctxMasque.lineWidth = 40; // Un peu moins permissif pour mieux coller au fantôme
-    ctxMasque.lineJoin = "round";
-    ctxMasque.textAlign = "center";
-    ctxMasque.textBaseline = "middle";
+    const trajectoire = TRAJECTOIRES[caractereActuel];
+    if (!trajectoire || !trajectoire[traitEnCours]) return;
 
-    // On fait correspondre la police
-    ctxMasque.font = "500px 'Arial Black', sans-serif";
+    const ptCible = getCoordsAbsolues(trajectoire[traitEnCours][pointEnCours]);
 
-    const xMid = canvasMasque.width / 2;
-    const yMid = canvasMasque.height / 2;
+    // Dessiner le point cible (une étoile scintillante)
+    ctxGuide.save();
+    const temps = Date.now() / 200;
+    const scale = 1 + Math.sin(temps) * 0.2;
 
-    // On dessine le corps et le contour pour élargir la zone valide (plus facile pour l'enfant)
-    ctxMasque.strokeText(caractere, xMid, yMid);
-    ctxMasque.fillText(caractere, xMid, yMid);
-    ctxMasque.restore();
+    ctxGuide.translate(ptCible.x, ptCible.y);
+    ctxGuide.scale(scale, scale);
 
-    // 2. Analyser les secteurs actifs (grille invisible pour vérifier la complétion)
-    secteursActifs = [];
-    const stepX = canvas.width / NB_SECTEURS;
-    const stepY = canvas.height / NB_SECTEURS;
+    ctxGuide.beginPath();
+    ctxGuide.arc(0, 0, 15, 0, Math.PI * 2);
+    ctxGuide.fillStyle = "white";
+    ctxGuide.shadowBlur = 20;
+    ctxGuide.shadowColor = "yellow";
+    ctxGuide.fill();
 
-    for (let iy = 0; iy < NB_SECTEURS; iy++) {
-        for (let ix = 0; ix < NB_SECTEURS; ix++) {
-            const x = ix * stepX;
-            const y = iy * stepY;
-            // On vérifie si le centre du secteur est dans la zone blanche du masque
-            const data = ctxMasque.getImageData(Math.floor(x + stepX/2), Math.floor(y + stepY/2), 1, 1).data;
-            if (data[0] > 100) {
-                secteursActifs.push(iy * NB_SECTEURS + ix);
-            }
-        }
+    // Petite étoile
+    ctxGuide.fillStyle = "yellow";
+    ctxGuide.beginPath();
+    for (let i = 0; i < 5; i++) {
+        ctxGuide.lineTo(Math.cos((18 + i * 72) * Math.PI / 180) * 25,
+                        Math.sin((18 + i * 72) * Math.PI / 180) * 25);
+        ctxGuide.lineTo(Math.cos((54 + i * 72) * Math.PI / 180) * 10,
+                        Math.sin((54 + i * 72) * Math.PI / 180) * 10);
     }
+    ctxGuide.closePath();
+    ctxGuide.fill();
+
+    ctxGuide.restore();
+}
+
+function distance(p1, p2) {
+    return Math.sqrt((p1.x - p2.x)**2 + (p1.y - p2.y)**2);
+}
+
+function distancePointSegment(p, a, b) {
+    const l2 = (a.x - b.x)**2 + (a.y - b.y)**2;
+    if (l2 === 0) return distance(p, a);
+    let t = ((p.x - a.x) * (b.x - a.x) + (p.y - a.y) * (b.y - a.y)) / l2;
+    t = Math.max(0, Math.min(1, t));
+    return distance(p, {
+        x: a.x + t * (b.x - a.x),
+        y: a.y + t * (b.y - a.y)
+    });
 }
 
 function demarrerDessin(e) {
@@ -206,6 +227,38 @@ function demarrerDessin(e) {
     const { canvas, ctx } = configDessin;
     if (!canvas || !ctx) return;
     enTrainDeDessiner = true;
+
+    const rect = canvas.getBoundingClientRect();
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+
+    if (typeActuel !== 'libre') {
+        const trajectoire = TRAJECTOIRES[caractereActuel];
+        if (trajectoire && trajectoire[traitEnCours]) {
+            const trait = trajectoire[traitEnCours];
+            const ptSuivant = getCoordsAbsolues(trait[pointEnCours]);
+
+            if (pointEnCours === 0) {
+                if (distance({x, y}, ptSuivant) < DISTANCE_ACTIVATION) {
+                    estEnTrainDeSuivre = true;
+                    pointEnCours = 1;
+                    ctx.beginPath();
+                    ctx.moveTo(ptSuivant.x, ptSuivant.y);
+                }
+            } else {
+                const ptPrecedent = getCoordsAbsolues(trait[pointEnCours - 1]);
+                if (distance({x, y}, ptPrecedent) < DISTANCE_ACTIVATION || distance({x, y}, ptSuivant) < DISTANCE_ACTIVATION) {
+                    estEnTrainDeSuivre = true;
+                    ctx.beginPath();
+                    ctx.moveTo(x, y);
+                }
+            }
+        }
+    } else {
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+    }
+
     dessiner(e);
 }
 
@@ -214,70 +267,75 @@ function dessiner(e) {
     const { canvas, ctx } = configDessin;
     if (!canvas || !ctx) return;
     const rect = canvas.getBoundingClientRect();
-    let x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
-    let y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
 
     if (typeActuel !== 'libre') {
-        const data = ctxMasque.getImageData(x, y, 1, 1).data;
-        const estDansLaLettre = data[0] > 128;
+        if (!estEnTrainDeSuivre) return;
 
-        if (estDansLaLettre) {
+        const trajectoire = TRAJECTOIRES[caractereActuel];
+        const trait = trajectoire[traitEnCours];
+        const pPrev = getCoordsAbsolues(trait[pointEnCours - 1]);
+        const pNext = getCoordsAbsolues(trait[pointEnCours]);
+
+        const distChemin = distancePointSegment({x, y}, pPrev, pNext);
+
+        if (distChemin < DISTANCE_SUIVI) {
             ctx.strokeStyle = couleurActuelle;
-            const ix = Math.floor(x / (canvas.width / NB_SECTEURS));
-            const iy = Math.floor(y / (canvas.height / NB_SECTEURS));
-            const idSecteur = iy * NB_SECTEURS + ix;
-            if (secteursActifs.includes(idSecteur)) {
-                secteursTouches.add(idSecteur);
+            ctx.lineTo(x, y);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(x, y);
+
+            if (distance({x, y}, pNext) < DISTANCE_ACTIVATION) {
+                pointEnCours++;
+                if (pointEnCours >= trait.length) {
+                    // Trait fini !
+                    pointEnCours = 0;
+                    traitEnCours++;
+                    estEnTrainDeSuivre = false;
+
+                    if (traitEnCours >= trajectoire.length) {
+                        celebrerFinTracer();
+                    } else {
+                        parler("Super !");
+                    }
+                }
             }
         } else {
-            ctx.strokeStyle = "red";
+            // Trop loin, on arrête le trait en cours
+            estEnTrainDeSuivre = false;
         }
     } else {
         ctx.strokeStyle = couleurActuelle;
+        ctx.lineTo(x, y);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
     }
-
-    ctx.lineTo(x, y);
-    ctx.stroke();
-    ctx.beginPath();
-    ctx.moveTo(x, y);
 
     for (let i = 0; i < 2; i++) {
         let p = new Particule(x + rect.left, y + rect.top);
-        p.couleur = ctx.strokeStyle === "red" ? "red" : couleurActuelle;
+        p.couleur = couleurActuelle;
         particules.push(p);
     }
 }
 
-let timerVerification;
 function arreterDessin() {
     if (dernierCanvasDessin) syncSurfaceDepuisCanvas(dernierCanvasDessin);
     const { ctx } = configDessin;
     if (!ctx) return;
-    if (enTrainDeDessiner && typeActuel !== 'libre') {
-        clearTimeout(timerVerification);
-        timerVerification = setTimeout(verifierTracerFini, 1200);
-    }
     enTrainDeDessiner = false;
+    estEnTrainDeSuivre = false;
     ctx.beginPath();
-}
-
-function verifierTracerFini() {
-    if (estEnTrainDeCelebrer || typeActuel === 'libre') return;
-
-    // Récupérer le seuil spécifique au caractère ou 25% par défaut
-    const seuilReussite = SEUILS_TRACER[caractereActuel] || 0.25;
-    const ratioRemplissage = secteursTouches.size / secteursActifs.length;
-
-    if (ratioRemplissage > seuilReussite) {
-        celebrerFinTracer();
-    }
 }
 
 function celebrerFinTracer() {
     if (estEnTrainDeCelebrer) return;
-    const { canvas, ctx } = configDessin;
+    const { canvas, ctx, ctxGuide, canvasGuide } = configDessin;
     if (!canvas || !ctx) return;
     estEnTrainDeCelebrer = true;
+    if (ctxGuide && canvasGuide) ctxGuide.clearRect(0, 0, canvasGuide.width, canvasGuide.height);
 
     parler("C'est magnifique ! Bravo !");
 
@@ -294,6 +352,27 @@ function celebrerFinTracer() {
     }, 5000);
 }
 
+// Global loop to redraw the guide point
+function boucleGuide() {
+    if (typeActuel !== 'libre' && !estEnTrainDeCelebrer) {
+        rafraichirGuide();
+    }
+    requestAnimationFrame(boucleGuide);
+}
+boucleGuide();
 
 window.addEventListener('mouseup', arreterDessin);
 window.addEventListener('touchend', arreterDessin);
+
+// Export for main.js or other modules
+window.initialiserDessin = initialiserDessin;
+window.effacerDessin = effacerDessin;
+window.afficherNouveauModele = afficherNouveauModele;
+window.changerCouleur = changerCouleur;
+window.demarrerDessin = demarrerDessin;
+window.dessiner = dessiner;
+window.arreterDessin = arreterDessin;
+window.bindDessinSurface = bindDessinSurface;
+window.SURFACE_LIBRE = SURFACE_LIBRE;
+window.SURFACE_LETTRES = SURFACE_LETTRES;
+window.SURFACE_CHIFFRES = SURFACE_CHIFFRES;

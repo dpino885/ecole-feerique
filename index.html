@@ -99,8 +99,9 @@
     </div>
 
     <div id="moduleTracerLettres" class="module-ecran" style="display: none;">
-        <div id="conteneurTracerLettres">
-            <canvas id="canvasTracerLettres"></canvas>
+        <div id="conteneurTracerLettres" style="position: relative;">
+            <canvas id="canvasTracerLettres" style="position: absolute; top: 0; left: 0;"></canvas>
+            <canvas id="canvasTracerLettresGuide" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
         </div>
         <div class="barre-laterale">
             <button class="btn-outil-special" onclick="retourMenu()" title="Retour au menu" aria-label="Retour au menu">🏠</button>
@@ -119,8 +120,9 @@
     </div>
 
     <div id="moduleTracerChiffres" class="module-ecran" style="display: none;">
-        <div id="conteneurTracerChiffres">
-            <canvas id="canvasTracerChiffres"></canvas>
+        <div id="conteneurTracerChiffres" style="position: relative;">
+            <canvas id="canvasTracerChiffres" style="position: absolute; top: 0; left: 0;"></canvas>
+            <canvas id="canvasTracerChiffresGuide" style="position: absolute; top: 0; left: 0; pointer-events: none;"></canvas>
         </div>
         <div class="barre-laterale">
             <button class="btn-outil-special" onclick="retourMenu()" title="Retour au menu" aria-label="Retour au menu">🏠</button>
@@ -244,6 +246,7 @@
     </div>
 
     <script src="js/state.js"></script>
+    <script src="js/trajectoires.js"></script>
     <script src="js/utils.js"></script>
     <script src="js/main.js"></script>
     <script src="js/fees.js"></script>
