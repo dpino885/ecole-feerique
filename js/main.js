@@ -125,8 +125,9 @@ if (btnPleinEcran) {
 function debloquerAudio() {
     initialiserVoix();
 }
-window.addEventListener('click', debloquerAudio, { once: true });
-window.addEventListener('touchstart', debloquerAudio, { once: true });
+// Utilisation de capture: true pour s'assurer que l'initialisation se fait AVANT les autres événements
+window.addEventListener('click', debloquerAudio, { once: true, capture: true });
+window.addEventListener('touchstart', debloquerAudio, { once: true, capture: true });
 
 const IDS_MODULES_JEU = [
     'moduleChiffres',
